@@ -215,19 +215,14 @@ class Updater(private val context: Context) {
         // l'accès, et le cache de l'application est privé.
         apk.setReadable(true, false)
 
-        if (hasRoot()) {
-            // L'installation tue le processus de l'application : tout ce qui suit dans
-            // *ce* processus est perdu, y compris le redémarrage. D'où un shell détaché,
-            // qui installe puis relance le tableau de bord. Sans ce relancement, le
-            // panneau retombe sur le lanceur d'origine et y reste — sur un appareil
-            // encastré au mur, il faudrait aller le toucher.
-            val log = "/data/local/tmp/hapanel-install.log"
-            val script = "pm install -r -d ${apk.absolutePath} > $log 2>&1; " +
-                "am start -n ${context.packageName}/.MainActivity >> $log 2>&1"
-            runAsRoot("nohup sh -c '$script' > /dev/null 2>&1 &")
-            return null
-        }
-        Log.i(TAG, "pas de root : passage par l'installateur système")
+        // Le retour au tableau de bord n'est **pas** géré ici : l'installation tue le
+        // processus de l'application, et emporte avec lui tout shell qu'elle aurait
+        // lancé — y compris détaché, essayé et constaté en 0.4. C'est `BootReceiver`,
+        // sur `MY_PACKAGE_REPLACED`, qui relance l'écran depuis un processus neuf.
+        val silent = runAsRoot("pm install -r -d ${apk.absolutePath}")
+        if (silent != null && silent.contains("Success", ignoreCase = true)) return null
+
+        Log.i(TAG, "installation silencieuse indisponible ($silent), passage par le système")
 
         return try {
             val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -246,14 +241,6 @@ class Updater(private val context: Context) {
             e.message ?: context.getString(R.string.update_failed)
         }
     }
-
-    /**
-     * Vrai si `su` répond. Vérifié avant de lancer l'installation détachée : celle-ci ne
-     * rend aucun compte, puisque le processus qui l'a lancée meurt entre-temps. Mieux
-     * vaut donc savoir d'avance si elle a une chance d'aboutir.
-     */
-    private fun hasRoot(): Boolean =
-        runAsRoot("id")?.contains("uid=0") == true
 
     private fun runAsRoot(command: String): String? = try {
         val process = Runtime.getRuntime().exec(arrayOf("su", "0", "sh", "-c", command))

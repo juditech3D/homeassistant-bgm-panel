@@ -110,7 +110,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Relance le tableau de bord après une coupure de courant. -->
+        <!--
+            Relance le tableau de bord après une coupure de courant, et après chaque mise
+            à jour. MY_PACKAGE_REPLACED arrive dans un processus neuf, une fois la
+            réinstallation terminée : c'est le seul moyen fiable de revenir à l'écran,
+            « pm install -r » tuant tout ce que l'application aurait pu laisser derrière.
+        -->
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
@@ -118,6 +123,9 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
