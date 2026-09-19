@@ -37,6 +37,9 @@ en vues Android classiques.
 - **Wi-Fi et Bluetooth** réglables depuis le panneau : recherche des réseaux, saisie de la
   clé avec possibilité de l'afficher, et audio Bluetooth **dans les deux sens** — recevoir
   la musique d'un téléphone, ou diffuser vers une enceinte.
+- **Pont Zigbee** : le panneau embarque un coprocesseur Zigbee EmberZNet sur son port
+  série ; l'application l'expose sur le réseau pour que **Zigbee2MQTT ou ZHA** s'en
+  servent depuis le serveur Home Assistant.
 - **Mise à jour par le réseau** : le panneau va chercher lui-même sa nouvelle version, ce
   qui évite de le démonter de sa boîte d'encastrement.
 - **Chaque fonction s'active ou se désactive** séparément dans les réglages : un panneau
@@ -281,6 +284,57 @@ Les deux rôles coexistent dans Android, mais pas sur le même flux : appairer u
 pendant qu'un téléphone diffuse coupe le son sans explication. D'où un réglage plutôt
 qu'un mélange. Un appui sur un appareil l'appaire ou s'y connecte, un appui long propose
 de le déconnecter ou de l'oublier.
+
+---
+
+## Zigbee : utiliser la radio du panneau depuis Home Assistant
+
+Ce panneau embarque un **coprocesseur Zigbee Silicon Labs EmberZNet** sur `/dev/ttyS3`.
+Il ne se signale ni par un pilote noyau ni par un nœud de l'arbre matériel — un NCP relié
+en UART n'en a pas besoin — d'où la facilité avec laquelle on le manque.
+
+**Vérifier que le vôtre en a un** : Réglages → Zigbee → « Chercher la radio Zigbee ». Ou
+en ligne de commande :
+
+```bash
+adb shell su 0 sh -c 'busybox stty -F /dev/ttyS3 115200 raw -echo -crtscts; printf "À8¼~" > /dev/ttyS3; timeout 2 head -c 8 < /dev/ttyS3 | xxd'
+```
+
+Une réponse `1ac1 020b 0a52 7e` est la trame **RSTACK** du protocole ASH : c'est un NCP
+EmberZNet.
+
+### Le pont
+
+Zigbee2MQTT et ZHA tournent sur le serveur Home Assistant, la radio est sur le panneau.
+L'application comble la distance : cochez **« Exposer la radio Zigbee sur le réseau »**
+dans Réglages → Zigbee, et le panneau écoute sur le port TCP indiqué (8888 par défaut),
+relayant octet pour octet vers le port série.
+
+Un **seul client à la fois** : un coordinateur Zigbee ne se partage pas, deux clients
+entrelaceraient leurs trames. Une seconde connexion est refusée.
+
+### Côté serveur
+
+**Zigbee2MQTT** — dans `configuration.yaml` :
+
+```yaml
+serial:
+  port: tcp://192.168.1.196:8888
+  adapter: ember
+```
+
+**ZHA** — à l'ajout de l'intégration, choisir la saisie manuelle et donner
+`socket://192.168.1.196:8888`, type de radio **EZSP**.
+
+> **Donnez une adresse IP fixe au panneau** avant de faire cela, par réservation DHCP sur
+> sa MAC. Un coordinateur Zigbee qui change d'adresse, c'est tout le réseau Zigbee qui
+> tombe.
+
+> ⚠️ **Le réseau Zigbee vit dans le coprocesseur**, pas dans le panneau : ses clés et
+> sa table d'appairages sont en mémoire non volatile sur la puce. Une réinstallation de
+> l'application n'y touche pas. En revanche, ne faites pas dialoguer deux logiciels
+> différents avec lui — Zigbee2MQTT **et** ZHA par exemple : le second reformerait le
+> réseau et vous perdriez tous vos appairages.
 
 ---
 

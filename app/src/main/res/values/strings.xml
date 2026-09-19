@@ -105,6 +105,20 @@
     <string name="bt_forget">Oublier</string>
     <string name="bt_action_failed">%1$s : le système a refusé</string>
 
+    <!-- Pont Zigbee -->
+    <string name="section_zigbee">Zigbee</string>
+    <string name="zigbee_title">Pont Zigbee</string>
+    <string name="zigbee_help">Ce panneau peut embarquer un coprocesseur Zigbee sur un port série. Le pont l\'expose sur le réseau pour que Zigbee2MQTT ou ZHA, qui tournent sur le serveur Home Assistant, puissent s\'en servir.</string>
+    <string name="feature_zigbee">Exposer la radio Zigbee sur le réseau</string>
+    <string name="hint_zigbee_device">Port série, ex. /dev/ttyS3</string>
+    <string name="hint_zigbee_port">Port TCP d\'écoute</string>
+    <string name="zigbee_probe">Chercher la radio Zigbee</string>
+    <string name="zigbee_probing">Interrogation du port série…</string>
+    <string name="zigbee_found">Radio trouvée : réponse %1$s — coprocesseur EmberZNet</string>
+    <string name="zigbee_not_found">Aucune réponse sur ce port : pas de radio Zigbee</string>
+    <string name="zigbee_running">À l\'écoute sur le port %1$d</string>
+    <string name="zigbee_address">Adresse à donner au serveur : tcp://%1$s:%2$d</string>
+
     <!-- Mises à jour par le réseau -->
     <string name="section_updates">Mises à jour</string>
     <string name="updates_help">Le panneau va chercher lui-même sa nouvelle version : dépôt GitHub sous la forme « compte/depot », ou adresse d\'un fichier JSON déposé par exemple dans le dossier www de Home Assistant.</string>

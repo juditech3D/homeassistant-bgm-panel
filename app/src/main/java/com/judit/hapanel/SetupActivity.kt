@@ -54,6 +54,10 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var updateSourceField: EditText
     private lateinit var updateAutoField: CheckBox
     private lateinit var updateState: TextView
+    private lateinit var featureZigbee: CheckBox
+    private lateinit var zigbeeDeviceField: EditText
+    private lateinit var zigbeePortField: EditText
+    private lateinit var zigbeeState: TextView
 
     private lateinit var updater: Updater
 
@@ -94,6 +98,7 @@ class SetupActivity : AppCompatActivity() {
         setupSection(R.id.header_entities, R.id.section_entities, false)
         setupSection(R.id.header_display, R.id.section_display, false)
         setupSection(R.id.header_network, R.id.section_network, false)
+        setupSection(R.id.header_zigbee, R.id.section_zigbee, false)
         setupSection(R.id.header_audio, R.id.section_audio, false)
 
         // Toucher le fond referme le clavier, qui masque sinon la moitié de l'écran.
@@ -133,6 +138,10 @@ class SetupActivity : AppCompatActivity() {
         updateSourceField = findViewById(R.id.update_source)
         updateAutoField = findViewById(R.id.update_auto)
         updateState = findViewById(R.id.update_state)
+        featureZigbee = findViewById(R.id.feature_zigbee)
+        zigbeeDeviceField = findViewById(R.id.zigbee_device)
+        zigbeePortField = findViewById(R.id.zigbee_port)
+        zigbeeState = findViewById(R.id.zigbee_state)
     }
 
     private fun fillFromPrefs() {
@@ -159,6 +168,9 @@ class SetupActivity : AppCompatActivity() {
         updateSourceField.setText(prefs.updateSource)
         updateAutoField.isChecked = prefs.updateAuto
         updateState.text = getString(R.string.update_installed, updater.installedVersion)
+        featureZigbee.isChecked = prefs.zigbeeEnabled
+        zigbeeDeviceField.setText(prefs.zigbeeDevice)
+        zigbeePortField.setText(prefs.zigbeePort.toString())
 
         doorbellSecondsField.setText(prefs.doorbellCameraSeconds.toString())
         // Pré-rempli avec l'hôte du serveur Home Assistant : go2rtc y tourne le plus
@@ -260,9 +272,34 @@ class SetupActivity : AppCompatActivity() {
             startActivity(Intent(this, NetworkActivity::class.java))
         }
 
+        // La sonde et le pont se disputeraient le port serie : on arrete le service le
+        // temps d'interroger le coprocesseur, il repartira en revenant au tableau de bord.
+        findViewById<Button>(R.id.zigbee_probe).setOnClickListener {
+            zigbeeDeviceField.text.toString().trim().takeIf { d -> d.isNotEmpty() }
+                ?.let { d -> prefs.zigbeeDevice = d }
+            ZigbeeBridgeService.stop(this)
+            zigbeeState.setText(R.string.zigbee_probing)
+            kotlin.concurrent.thread(isDaemon = true) {
+                val reponse = ZigbeeBridgeService.probe(this)
+                runOnUiThread {
+                    if (isFinishing) return@runOnUiThread
+                    zigbeeState.text = if (reponse != null && reponse.startsWith("1ac1")) {
+                        getString(R.string.zigbee_found, reponse)
+                    } else {
+                        getString(R.string.zigbee_not_found)
+                    }
+                }
+            }
+        }
+
         findViewById<Button>(R.id.update_check).setOnClickListener {
             prefs.updateSource = updateSourceField.text.toString()
             prefs.updateAuto = updateAutoField.isChecked
+        prefs.zigbeeEnabled = featureZigbee.isChecked
+        zigbeeDeviceField.text.toString().trim().takeIf { it.isNotEmpty() }
+            ?.let { prefs.zigbeeDevice = it }
+        zigbeePortField.text.toString().trim().toIntOrNull()
+            ?.let { prefs.zigbeePort = it }
             UpdateFlow(this, prefs).check(updateState)
         }
 

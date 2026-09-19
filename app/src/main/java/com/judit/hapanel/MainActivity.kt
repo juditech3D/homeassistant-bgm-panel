@@ -195,6 +195,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         } else {
             com.judit.hapanel.dlna.DlnaRendererService.stop(this)
         }
+
+        // Expose le coprocesseur Zigbee sur le reseau, pour Zigbee2MQTT ou ZHA. Le
+        // service vit hors de cette activite : le reseau Zigbee ne doit pas s'arreter
+        // quand l'ecran se met en veille.
+        if (prefs.zigbeeEnabled) {
+            ZigbeeBridgeService.start(this)
+        } else {
+            ZigbeeBridgeService.stop(this)
+        }
     }
 
     override fun onStart() {

@@ -1,11 +1,11 @@
-import java.util.Properties
+﻿import java.util.Properties
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
 
-// Identifiants de signature, tenus hors du fichier de build et hors du dépôt.
+// Identifiants de signature, tenus hors du fichier de build et hors du dÃ©pÃ´t.
 // Absents, le build de release se fait sans signature et Gradle le signale.
 val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore.properties")
@@ -20,11 +20,11 @@ android {
         applicationId = "com.judit.hapanel"
         minSdk = 24
         // Le panneau tourne sous Android 8.1 (API 27). Rester sur targetSdk 27
-        // garde le HTTP en clair autorisé par défaut, ce qui est indispensable
+        // garde le HTTP en clair autorisÃ© par dÃ©faut, ce qui est indispensable
         // pour joindre Home Assistant en local sans TLS.
         targetSdk = 27
-        versionCode = 6
-        versionName = "0.6"
+        versionCode = 7
+        versionName = "0.7"
     }
 
     signingConfigs {
@@ -40,8 +40,8 @@ android {
 
     buildTypes {
         release {
-            // Pas d'obfuscation : l'application est petite, tient sur ce matériel
-            // modeste, et R8 compliquerait la lecture des traces sans bénéfice ici.
+            // Pas d'obfuscation : l'application est petite, tient sur ce matÃ©riel
+            // modeste, et R8 compliquerait la lecture des traces sans bÃ©nÃ©fice ici.
             isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("release")
         }
@@ -59,17 +59,17 @@ android {
     }
 
     lint {
-        // Lint refuse un build de release dont le targetSdk est inférieur à 33, au nom
-        // des exigences du Google Play Store. Cette application n'y sera jamais publiée :
-        // elle est installée directement sur un panneau sous Android 8.1, et son
-        // targetSdk 27 est un choix assumé (voir plus haut). La règle ne s'applique pas.
+        // Lint refuse un build de release dont le targetSdk est infÃ©rieur Ã  33, au nom
+        // des exigences du Google Play Store. Cette application n'y sera jamais publiÃ©e :
+        // elle est installÃ©e directement sur un panneau sous Android 8.1, et son
+        // targetSdk 27 est un choix assumÃ© (voir plus haut). La rÃ¨gle ne s'applique pas.
         disable += "ExpiredTargetSdkVersion"
     }
 }
 
-// Les sources sont en UTF-8 : sans cela, javac utiliserait l'encodage par défaut de la
+// Les sources sont en UTF-8 : sans cela, javac utiliserait l'encodage par dÃ©faut de la
 // plateforme (cp1252 sous Windows). Voir aussi kotlin.daemon.jvmargs dans
-// gradle.properties, qui règle le même problème côté Kotlin.
+// gradle.properties, qui rÃ¨gle le mÃªme problÃ¨me cÃ´tÃ© Kotlin.
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }

@@ -93,6 +93,25 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_ASSISTANT, true)
         set(v) = sp.edit().putBoolean(KEY_ASSISTANT, v).apply()
 
+    /**
+     * Pont Zigbee : expose le coprocesseur du panneau sur le réseau, pour Zigbee2MQTT
+     * ou ZHA. Voir [ZigbeeBridgeService]. Désactivé par défaut — tous les panneaux de
+     * cette famille n'ont pas la radio, et l'exposer sans le vouloir n'aurait pas de sens.
+     */
+    var zigbeeEnabled: Boolean
+        get() = sp.getBoolean(KEY_ZIGBEE, false)
+        set(v) = sp.edit().putBoolean(KEY_ZIGBEE, v).apply()
+
+    /** Port série du coprocesseur Zigbee. `/dev/ttyS3` sur le panneau de référence. */
+    var zigbeeDevice: String
+        get() = sp.getString(KEY_ZIGBEE_DEVICE, DEFAULT_ZIGBEE_DEVICE) ?: DEFAULT_ZIGBEE_DEVICE
+        set(v) = sp.edit().putString(KEY_ZIGBEE_DEVICE, v.trim()).apply()
+
+    /** Port TCP d'écoute du pont Zigbee. */
+    var zigbeePort: Int
+        get() = sp.getInt(KEY_ZIGBEE_PORT, DEFAULT_ZIGBEE_PORT)
+        set(v) = sp.edit().putInt(KEY_ZIGBEE_PORT, v.coerceIn(1024, 65535)).apply()
+
     /** Audio Bluetooth : réception depuis un téléphone, ou émission vers une enceinte. */
     var bluetoothEnabled: Boolean
         get() = sp.getBoolean(KEY_BLUETOOTH, false)
@@ -257,6 +276,15 @@ class Prefs(context: Context) {
         const val KEY_WIFI_FALLBACK = "wifi_fallback"
         const val KEY_UPDATE_SOURCE = "update_source"
         const val KEY_UPDATE_AUTO = "update_auto"
+        const val KEY_ZIGBEE = "feature_zigbee"
+        const val KEY_ZIGBEE_DEVICE = "zigbee_device"
+        const val KEY_ZIGBEE_PORT = "zigbee_port"
+
+        /** Le port série du coprocesseur Zigbee sur le panneau de référence. */
+        const val DEFAULT_ZIGBEE_DEVICE = "/dev/ttyS3"
+
+        /** Port TCP par défaut du pont Zigbee, choisi hors des plages usuelles. */
+        const val DEFAULT_ZIGBEE_PORT = 8888
 
         /**
          * Le dépôt du projet. C'est la source par défaut : qui installe l'application

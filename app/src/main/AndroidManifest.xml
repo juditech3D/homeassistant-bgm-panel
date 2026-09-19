@@ -116,6 +116,16 @@
             réinstallation terminée : c'est le seul moyen fiable de revenir à l'écran,
             « pm install -r » tuant tout ce que l'application aurait pu laisser derrière.
         -->
+        <!--
+            Pont Zigbee : relaie le coprocesseur du panneau vers un port TCP, pour que
+            Zigbee2MQTT ou ZHA y accedent depuis le serveur Home Assistant. Service de
+            premier plan : le reseau Zigbee ne s'arrete pas parce que l'ecran s'est mis
+            en veille.
+        -->
+        <service
+            android:name=".ZigbeeBridgeService"
+            android:exported="false" />
+
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
