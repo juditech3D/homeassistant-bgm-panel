@@ -369,9 +369,14 @@ bouton, API `/proc/vendor/`, carte des GPIO, écran rond, DLNA, assistant vocal,
 
 ## Limites connues
 
-- **Les capteurs de proximité et de luminosité sont déclarés par le système mais
-  physiquement absents** de cet exemplaire : le réveil par approche ne peut pas
-  fonctionner. L'option existe, au cas où d'autres panneaux en soient pourvus.
+- **Les capteurs de proximité et de luminosité ne répondent pas.** La puce est pourtant
+  prévue par la carte — une WH7714UC déclarée à l'adresse i2c `0x38` — mais elle
+  n'acquitte rien sur le bus : la sonde du pilote échoue au démarrage, toutes les lectures
+  renvoyant des zéros. Le réveil par approche ne peut donc pas fonctionner.
+  ⚠️ `dumpsys sensorservice` les annonce quand même, et n'importe quelle application
+  d'information sur les capteurs les affichera comme présents : c'est la couche HAL de
+  Rockchip qui les déclare d'après sa configuration, sans vérifier qu'un pilote s'est lié.
+  Voir [la référence technique](docs/reference-technique.md) pour le détail.
 - **L'appui long sur le bouton est indétectable** : le matériel émet une impulsion de
   ~130 µs, pas un maintien.
 - Les bornes `IO` et `OFF/ON` ne sont pas identifiées.

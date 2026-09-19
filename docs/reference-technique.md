@@ -149,13 +149,43 @@ Pour supprimer réellement ces pertes il faudrait court-circuiter le pilote et d
 soi-même les voies A/B de l'encodeur sur les GPIO 112 et 114, ce qui exigerait le root
 et une scrutation permanente. Non fait.
 
-### ⚠️ Les capteurs de proximité et de luminosité n'existent pas
+### ⚠️ Les capteurs de proximité et de luminosité ne répondent pas
 
-La ROM les **déclare**, `dumpsys sensorservice` les liste, et `getDefaultSensor` renvoie
-bien un objet avec une portée de 9,0 — tout laisse croire qu'ils sont là. **Ils sont
-absents du matériel.**
+La puce est bien **prévue par la carte** : une **WH7714UC**, capteur combiné
+luminosité + proximité, déclarée dans l'arbre matériel à l'adresse i2c `0x38` du bus
+`i2c-1`, avec `status = okay`.
 
-`registerListener` renvoie `false`, et le système est explicite :
+```
+/sys/bus/i2c/devices/1-0038/name    →  ls_wh7714uc   (luminosité)
+/sys/bus/i2c/devices/1-0038-1/name  →  ps_wh7714uc   (proximité)
+```
+
+**Mais elle ne répond pas sur le bus.** La sonde du pilote Rockchip échoue au démarrage,
+toutes les lectures renvoyant des zéros :
+
+```
+sensors 1-0038: sensor_chip_init:ls_wh7714uc:devid=0x0
+sensors 1-0038: lsensor_active:fail to read sensor status
+        buffer, [0]: 0x00, [1]: 0x00
+        lsensor_active:reg=0x0, reg_ctrl=0x0, enable=0
+sensors 1-0038: lsensor_active:fail to active sensor
+sensors: probe of 1-0038 failed with error -2
+```
+
+Aucun pilote n'est donc rattaché au nœud (`/sys/bus/i2c/devices/1-0038-1/` ne contient ni
+`driver`, ni `enable`, ni `data`), et **aucun périphérique d'entrée correspondant
+n'apparaît** dans `/proc/bus/input/devices` — où l'on ne trouve que le bouton rotatif,
+l'anneau, la touche d'alimentation, le tactile Goodix, le récepteur infrarouge et les
+touches ADC.
+
+> **Piège à connaître.** `dumpsys sensorservice` annonce pourtant
+> « Total 3 h/w sensors, 3 running » et liste un `Proximity sensor` marqué `wakeUp` ainsi
+> qu'un `Light sensor`. C'est la couche HAL de Rockchip qui les déclare **d'après sa
+> configuration**, sans vérifier qu'un pilote noyau s'est lié. N'importe quelle
+> application d'information sur les capteurs les affichera donc comme présents. Ils ne
+> renvoient jamais la moindre valeur.
+
+Côté Android, cela se traduit par :
 
 ```
 SensorsHal: Couldn't open /dev/lightsensor (No such file or directory)
@@ -163,12 +193,24 @@ SensorsHal: Couldn't open /dev/psensor (No such file or directory)
 SensorService: Error activating sensor 3 (Function not implemented)
 ```
 
-Et le pilote lui-même, interrogé directement en sysfs :
+**Pourquoi la puce ne répond pas**, cela n'a pas pu être tranché à distance. Deux
+hypothèses : le composant n'est pas monté sur cette variante de carte — l'arbre matériel
+est partagé entre plusieurs modèles — ou bien il l'est mais reste non alimenté. Le nœud
+de l'arbre est d'ailleurs incomplet, le pilote s'en plaint :
 
 ```
-/sys/class/sensor_class/ps_data   →  no proximity sensor find
-/sys/class/sensor_class/als_data  →  no light sensor find
+of_get_named_gpiod_flags: can't parse 'irq-gpio'   property of node '/i2c@ff190000/light@38[0]'
+of_get_named_gpiod_flags: can't parse 'reset-gpio' property of node '/i2c@ff190000/light@38[0]'
+of_get_named_gpiod_flags: can't parse 'power-gpio' property of node '/i2c@ff190000/light@38[0]'
 ```
+
+Pas de ligne d'interruption déclarée, ce qui serait de toute façon rédhibitoire pour un
+capteur de proximité censé réveiller l'écran. Rien non plus dans `/proc/vendor/` qui
+permettrait de l'alimenter à la main.
+
+> Ce que l'on **voit** en façade, près du bord, a de bonnes chances d'être le **récepteur
+> infrarouge**, lui bien présent et fonctionnel (`gpio_ir_recv`, `event4`). Pour trancher :
+> `getevent /dev/input/event4` en pointant une télécommande dessus.
 
 **Conséquences** : le réveil de l'écran par approche est impossible, et les capteurs
 `panneau_luminosite` et `panneau_presence` ne peuvent rien publier. L'application le
