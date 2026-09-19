@@ -43,15 +43,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var adapter: TileAdapter
     private lateinit var status: TextView
     private lateinit var statusDot: TextView
-    private lateinit var clock: TextView
-    private lateinit var dateLabel: TextView
     private lateinit var gridLayout: GridLayoutManager
     private lateinit var mediaCard: MediaCardView
     private lateinit var greeting: TextView
-    private lateinit var weatherBox: View
-    private lateinit var weatherIcon: TextView
-    private lateinit var weatherTemp: TextView
-    private lateinit var weatherCondition: TextView
+    private lateinit var weatherCard: WeatherCardView
     private lateinit var empty: TextView
     private lateinit var tiles: RecyclerView
 
@@ -122,14 +117,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         status = findViewById(R.id.status)
         statusDot = findViewById(R.id.status_dot)
-        clock = findViewById(R.id.clock)
-        dateLabel = findViewById(R.id.date)
         greeting = findViewById(R.id.greeting)
-        weatherBox = findViewById(R.id.weather)
-        weatherIcon = findViewById(R.id.weather_icon)
-        weatherTemp = findViewById(R.id.weather_temp)
-        weatherCondition = findViewById(R.id.weather_condition)
-        weatherIcon.typeface = MdiIcons.typeface()
+        weatherCard = findViewById(R.id.weather_card)
         mediaCard = findViewById(R.id.media_card)
         mediaCard.onService = { service, entityId, data ->
             client.callService("media_player", service, entityId, data)
@@ -242,21 +231,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     }
 
     /**
-     * Met l'horloge du bandeau a l'heure et se reprogramme au changement de minute.
+     * Met la salutation du bandeau a jour et se reprogramme au changement de minute.
      *
-     * On vise le debut de la minute suivante plutot qu'un battement fixe : une horloge
-     * qui affiche les minutes doit changer quand la minute change, pas trente secondes
-     * apres.
+     * Ni horloge ni date ici : l'ecran rond du bouton rotatif les affiche deja, a
+     * trente centimetres de la. Le battement reste cale sur la minute, pour que le
+     * passage de « Bon apres-midi » a « Bonsoir » se fasse a l'heure juste.
      */
     private val tickHorloge = object : Runnable {
         override fun run() {
-            val maintenant = java.util.Date()
-            clock.text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-                .format(maintenant)
-            dateLabel.text = java.text.SimpleDateFormat(
-                "EEEE d MMMM", java.util.Locale.getDefault()
-            ).format(maintenant).replaceFirstChar { it.uppercase() }
-
             // La salutation suit l'heure : elle donne au bandeau un ton d'accueil
             // plutot que de tableau de bord technique.
             val heure = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
@@ -267,6 +249,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
                     else -> R.string.greeting_evening
                 }
             )
+
+            if (this@MainActivity::weatherCard.isInitialized) weatherCard.refreshDate()
 
             val restant = 60_000L - (System.currentTimeMillis() % 60_000L)
             ui.postDelayed(this, restant + 200L)
@@ -711,22 +695,12 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * d'ou le recalcul de la grille dans la foulee.
      */
     /**
-     * Affiche la meteo du bandeau, reprise de la premiere entite `weather` du serveur.
-     * Masquee s'il n'y en a aucune : mieux vaut un bandeau sobre qu'un emplacement vide.
+     * Affiche la carte meteo, alimentee par la premiere entite `weather` du serveur.
+     * Masquee s'il n'y en a aucune : la musique recupere alors toute la hauteur.
      */
     private fun refreshWeather() {
-        if (!this::weatherBox.isInitialized) return
-        val meteo = allEntities.firstOrNull { it.domain == "weather" }
-        if (meteo == null) {
-            weatherBox.visibility = View.GONE
-            return
-        }
-        weatherBox.visibility = View.VISIBLE
-        val temperature = meteo.attributes.optDouble("temperature", Double.NaN)
-        weatherTemp.text = if (temperature.isNaN()) "—"
-        else String.format("%.0f°", temperature)
-        weatherCondition.text = conditionLabel(meteo.state)
-        weatherIcon.text = MdiIcons.glyph(weatherGlyph(meteo.state))
+        if (!this::weatherCard.isInitialized) return
+        weatherCard.visibility = if (weatherCard.bind(allEntities)) View.VISIBLE else View.GONE
     }
 
     private fun refreshMediaCard() {
@@ -790,43 +764,6 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         /** Au-dela, la grille defile plutot que d'ecraser les tuiles. */
         const val MAX_TILE_ROWS = 3
 
-        /** Icone MDI correspondant a un etat d'entite `weather` de Home Assistant. */
-        fun weatherGlyph(condition: String): String = when (condition) {
-            "sunny" -> "weather-sunny"
-            "clear-night" -> "weather-night"
-            "partlycloudy" -> "weather-partly-cloudy"
-            "cloudy" -> "weather-cloudy"
-            "fog" -> "weather-fog"
-            "hail" -> "weather-hail"
-            "lightning" -> "weather-lightning"
-            "lightning-rainy" -> "weather-lightning-rainy"
-            "pouring" -> "weather-pouring"
-            "rainy" -> "weather-rainy"
-            "snowy" -> "weather-snowy"
-            "snowy-rainy" -> "weather-snowy-rainy"
-            "windy", "windy-variant" -> "weather-windy"
-            "exceptional" -> "alert-circle-outline"
-            else -> "weather-cloudy"
-        }
-
-        /** Libelle francais de la condition meteorologique. */
-        fun conditionLabel(condition: String): String = when (condition) {
-            "sunny" -> "Ensoleillé"
-            "clear-night" -> "Ciel dégagé"
-            "partlycloudy" -> "Peu nuageux"
-            "cloudy" -> "Nuageux"
-            "fog" -> "Brouillard"
-            "hail" -> "Grêle"
-            "lightning" -> "Orageux"
-            "lightning-rainy" -> "Orages et pluie"
-            "pouring" -> "Fortes pluies"
-            "rainy" -> "Pluvieux"
-            "snowy" -> "Neigeux"
-            "snowy-rainy" -> "Pluie et neige"
-            "windy", "windy-variant" -> "Venteux"
-            "exceptional" -> "Conditions extrêmes"
-            else -> condition.replaceFirstChar { it.uppercase() }
-        }
 
         /** En dessous de ce délai entre deux impulsions, on considère la rotation rapide. */
         const val FAST_ROTATION_MS = 200L
