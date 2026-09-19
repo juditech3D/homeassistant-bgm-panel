@@ -230,6 +230,36 @@ luminosité, capteur de proximité, récepteur infrarouge. À chaque fois, le lo
 annonce le matériel et le matériel ne répond pas. Avant de bâtir quoi que ce soit sur un
 périphérique de ce panneau, vérifier son compteur dans `/proc/interrupts`.
 
+### La preuve par l'outillage du constructeur
+
+Le panneau embarque `com.sznaner.testdemo`, **l'application de test de production**. Elle
+parcourt le matériel test après test, et la liste de ses activités dit tout de ce que la
+carte possède réellement :
+
+```
+knobActivity          RelayTestingActivity      SerialPortActivity
+TouchActivity         Touch2Activity            ScreenScribingActivity
+WiFiActivity          EthernetActivity          BluetoothActivity
+MusicActivity         SoundRecordingActivity    MemoryActivity
+MiguActivity          DeviceInformationActivity
+```
+
+**Ni proximité, ni luminosité, ni infrarouge, ni caméra.** Le constructeur teste l'écran,
+le tactile, le bouton rotatif, les réseaux, le port série, les relais, le micro et la
+mémoire — et rien d'autre. Un capteur monté serait testé : c'est l'objet même de cette
+application.
+
+L'application générique de Rockchip, `com.DeviceTest`, est présente elle aussi et
+propose bien un `LightsensorTestActivity` — mais son champ `Light:` **reste vide**. Elle
+liste aussi GPS, boussole, gyroscope et radio FM, qui n'existent pas davantage : c'est une
+application universelle, dont la liste ne dit rien de la carte.
+
+> Ce que l'on voit en façade et qui ressemble à une LED émettrice accompagnée d'une
+> photodiode est vraisemblablement une **fenêtre moulée dans la face avant**, partagée
+> avec les variantes qui, elles, embarquent le composant. Le logement existe, le composant
+> n'est pas posé. `RelayTestingActivity` et `SerialPortActivity` confirment en revanche
+> que les relais et le port série, eux, sont bien réels.
+
 **Conséquences** : le réveil de l'écran par approche est impossible, et les capteurs
 `panneau_luminosite` et `panneau_presence` ne peuvent rien publier. L'application le
 détecte au démarrage, le journalise une fois et se désinscrit, plutôt que de publier des
