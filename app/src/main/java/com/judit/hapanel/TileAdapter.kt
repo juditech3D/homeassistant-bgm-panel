@@ -3,6 +3,7 @@ package com.judit.hapanel
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
@@ -14,6 +15,18 @@ class TileAdapter(
     private val items = ArrayList<Entity>()
     var selected: Int = -1
         private set
+
+    /**
+     * Hauteur imposee aux tuiles, en pixels. Calculee par le tableau de bord d'apres la
+     * place disponible : avec quatre entites on veut de grandes tuiles lisibles de loin,
+     * avec vingt il en faut de plus petites. A zero, la hauteur du gabarit s'applique.
+     */
+    var tileHeight: Int = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            notifyDataSetChanged()
+        }
 
     fun submit(newItems: List<Entity>) {
         items.clear()
@@ -72,6 +85,34 @@ class TileAdapter(
         holder.icon.typeface = MdiIcons.typeface()
         holder.icon.text = MdiIcons.glyphFor(e)
 
+        // Filigrane de fond : la meme icone, en grand et en transparence, teintee selon
+        // le domaine. Une entite allumee la montre un peu plus franchement -- l'etat se
+        // lit alors a distance, avant meme de dechiffrer le texte.
+        holder.watermark.typeface = MdiIcons.typeface()
+        holder.watermark.text = MdiIcons.glyphFor(e)
+        holder.watermark.setTextColor(
+            androidx.core.content.ContextCompat.getColor(
+                holder.itemView.context, domainColor(e.domain)
+            )
+        )
+        holder.watermark.alpha = if (e.isOn) WATERMARK_ON else WATERMARK_OFF
+
+        // Barre de niveau : seulement sur une entite reglable **et allumee**. Sur une
+        // entite binaire elle n'apprendrait rien, et sur une lampe eteinte elle ne
+        // montrerait qu'un rail vide -- du bruit sur toutes les tuiles a la fois.
+        if (e.adjustable != null && e.isOn) {
+            holder.level.visibility = View.VISIBLE
+            holder.level.progress = (e.normalisedValue() * 100).toInt()
+        } else {
+            holder.level.visibility = View.GONE
+        }
+
+        if (tileHeight > 0 && holder.itemView.layoutParams.height != tileHeight) {
+            holder.itemView.layoutParams = holder.itemView.layoutParams.apply {
+                height = tileHeight
+            }
+        }
+
         holder.itemView.isSelected = position == selected
         // Propagé aux enfants par la hiérarchie de vues : c'est ce qui colore l'icône.
         holder.itemView.isActivated = e.isOn
@@ -82,5 +123,27 @@ class TileAdapter(
         val icon: TextView = view.findViewById(R.id.tile_icon)
         val name: TextView = view.findViewById(R.id.tile_name)
         val value: TextView = view.findViewById(R.id.tile_value)
+        val level: ProgressBar = view.findViewById(R.id.tile_level)
+        val watermark: TextView = view.findViewById(R.id.tile_watermark)
+    }
+
+    private companion object {
+        /**
+         * Opacites du filigrane. Assez marque pour se deviner, assez discret pour ne
+         * jamais disputer la lisibilite a la valeur affichee par-dessus.
+         */
+        const val WATERMARK_ON = 0.18f
+        const val WATERMARK_OFF = 0.07f
+
+        /** Teinte du filigrane, par domaine Home Assistant. */
+        fun domainColor(domain: String): Int = when (domain) {
+            "light" -> R.color.domain_light
+            "cover", "fan" -> R.color.domain_cover
+            "climate", "water_heater" -> R.color.domain_climate
+            "media_player", Entity.PANEL_DOMAIN -> R.color.domain_media
+            "sensor", "binary_sensor", "weather" -> R.color.domain_sensor
+            "lock", "alarm_control_panel", "camera" -> R.color.domain_security
+            else -> R.color.domain_default
+        }
     }
 }

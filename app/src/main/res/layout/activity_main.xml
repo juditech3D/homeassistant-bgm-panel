@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Racine en FrameLayout : l'écran de veille doit recouvrir la totalité de
-    l'interface, barre d'état comprise, sinon il ne fait pas illusion.
+    l'interface, bandeau compris, sinon il ne fait pas illusion.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -13,35 +13,71 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!--
+            Bandeau supérieur. L'heure y tient la place principale : sur un panneau
+            fixé au mur, c'est ce qu'on regarde le plus souvent, et de loin. L'état de
+            la connexion se réduit à une pastille colorée — afficher l'adresse du
+            serveur en permanence n'apprend rien à l'usage et l'expose inutilement.
+        -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="20dp"
             android:paddingEnd="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:text="--:--"
+                    android:textColor="@color/text_primary"
+                    android:textSize="38sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Pastille d'état : verte connecté, rouge sinon. -->
+            <TextView
+                android:id="@+id/status_dot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="●"
+                android:textColor="@color/status_error"
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/status"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginEnd="16dp"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:text="@string/status_connecting"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/knob_hint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:text="@string/knob_hint"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
 
             <Button
                 android:id="@+id/entities_button"
@@ -77,11 +113,26 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:paddingStart="11dp"
-            android:paddingEnd="11dp"
-            android:paddingBottom="8dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
             android:clipToPadding="false"
             android:scrollbars="none" />
+
+        <!--
+            Rappel du fonctionnement du bouton, en pied de page et discret : utile les
+            premiers jours, inutile ensuite, et il n'a rien à faire en haut de l'écran.
+        -->
+        <TextView
+            android:id="@+id/knob_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp"
+            android:text="@string/knob_hint"
+            android:textColor="@color/text_tertiary"
+            android:textSize="11sp" />
 
     </LinearLayout>
 

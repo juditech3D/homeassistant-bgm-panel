@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Barre de niveau au bas d'une tuile : luminosité d'une lampe, position d'un volet,
+    volume d'un lecteur. Donne l'état d'un coup d'œil, sans avoir à lire le chiffre.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="2dp" />
+            <solid android:color="@color/level_track" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="2dp" />
+                <solid android:color="@color/level_fill" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

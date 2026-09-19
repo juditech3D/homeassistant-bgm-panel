@@ -42,6 +42,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var client: HaClient
     private lateinit var adapter: TileAdapter
     private lateinit var status: TextView
+    private lateinit var statusDot: TextView
+    private lateinit var clock: TextView
+    private lateinit var dateLabel: TextView
+    private lateinit var gridLayout: GridLayoutManager
     private lateinit var empty: TextView
     private lateinit var tiles: RecyclerView
 
@@ -110,11 +114,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         if (prefs.knobScreenEnabled) VendorHw.setKnobScreenPower(true)
 
         status = findViewById(R.id.status)
+        statusDot = findViewById(R.id.status_dot)
+        clock = findViewById(R.id.clock)
+        dateLabel = findViewById(R.id.date)
         empty = findViewById(R.id.empty)
         tiles = findViewById(R.id.tiles)
 
         adapter = TileAdapter { position -> onTileTapped(position) }
-        tiles.layoutManager = GridLayoutManager(this, TILE_COLUMNS)
+        gridLayout = GridLayoutManager(this, TILE_COLUMNS)
+        tiles.layoutManager = gridLayout
         tiles.adapter = adapter
 
         // Accès direct au sélecteur, pour ajouter ou retirer des entités sans repasser
@@ -206,8 +214,76 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         }
     }
 
+    /**
+     * Met l'horloge du bandeau a l'heure et se reprogramme au changement de minute.
+     *
+     * On vise le debut de la minute suivante plutot qu'un battement fixe : une horloge
+     * qui affiche les minutes doit changer quand la minute change, pas trente secondes
+     * apres.
+     */
+    private val tickHorloge = object : Runnable {
+        override fun run() {
+            val maintenant = java.util.Date()
+            clock.text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+                .format(maintenant)
+            dateLabel.text = java.text.SimpleDateFormat(
+                "EEEE d MMMM", java.util.Locale.getDefault()
+            ).format(maintenant).replaceFirstChar { it.uppercase() }
+
+            val restant = 60_000L - (System.currentTimeMillis() % 60_000L)
+            ui.postDelayed(this, restant + 200L)
+        }
+    }
+
+    /**
+     * Repartit les tuiles sur toute la surface disponible.
+     *
+     * Une grille a nombre de colonnes fixe laissait quatre entites tassees dans le coin
+     * superieur gauche, les trois quarts de l'ecran vides. On choisit desormais le
+     * nombre de colonnes d'apres le nombre d'entites, puis on etire les tuiles pour
+     * remplir la hauteur.
+     */
+    private fun layoutTiles(nombre: Int) {
+        if (nombre <= 0) return
+        tiles.post {
+            val largeur = tiles.width - tiles.paddingStart - tiles.paddingEnd
+            val hauteur = tiles.height - tiles.paddingTop - tiles.paddingBottom
+            if (largeur <= 0 || hauteur <= 0) return@post
+
+            val densite = resources.displayMetrics.density
+
+            // Reparti sur deux dimensions plutot que sur une seule ligne : quatre
+            // entites donnent une grille 2x2, pas quatre colonnes ecrasees contre le
+            // haut de l'ecran. Les paliers sont regles pour du 1024x600.
+            val souhaitees = when {
+                nombre <= 1 -> 1
+                nombre <= 4 -> 2
+                nombre <= 6 -> 3
+                nombre <= 12 -> 4
+                nombre <= 20 -> 5
+                else -> TILE_COLUMNS
+            }
+            // En dessous de 150 dp de large, une tuile devient illisible a distance.
+            val maximumTenable = (largeur / (150 * densite)).toInt().coerceAtLeast(1)
+            val colonnes = minOf(souhaitees, maximumTenable, TILE_COLUMNS).coerceAtLeast(1)
+
+            val lignes = (nombre + colonnes - 1) / colonnes
+            // Au-dela de ce que l'ecran peut montrer, la grille defile : on garde alors
+            // une hauteur confortable plutot que d'ecraser les tuiles.
+            val lignesVisibles = lignes.coerceAtMost(MAX_TILE_ROWS)
+
+            if (gridLayout.spanCount != colonnes) gridLayout.spanCount = colonnes
+            // Plafonnee : une tuile de 400 px de haut n'a qu'un grand vide au milieu,
+            // l'icone en haut et la valeur tout en bas.
+            adapter.tileHeight = (hauteur / lignesVisibles).coerceIn(
+                (96 * densite).toInt(), (230 * densite).toInt()
+            )
+        }
+    }
+
     override fun onStart() {
         super.onStart()
+        ui.post(tickHorloge)
         status.text = getString(R.string.status_connecting)
         client.connect()
         sensors?.start()
@@ -234,6 +310,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
     override fun onStop() {
         super.onStop()
+        ui.removeCallbacks(tickHorloge)
         client.disconnect()
         sensors?.stop()
         hardware?.stop()
@@ -534,13 +611,19 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     // ------------------------------------------------------- retours du client
 
     override fun onConnected() {
-        status.text = "${getString(R.string.status_connected)} — ${prefs.host}:${prefs.port}"
-        status.setTextColor(getColor(R.color.status_ok))
+        // Pastille verte et un seul mot : l'adresse du serveur n'apprend rien à
+        // l'usage quotidien, et l'afficher en permanence sur un écran mural l'expose
+        // à quiconque passe devant — ou photographie le panneau.
+        status.text = getString(R.string.status_connected)
+        status.setTextColor(getColor(R.color.text_secondary))
+        statusDot.setTextColor(getColor(R.color.status_ok))
     }
 
     override fun onDisconnected(reason: String) {
+        // En panne, en revanche, la raison est ce qu'on veut lire.
         status.text = getString(R.string.status_disconnected, reason)
         status.setTextColor(getColor(R.color.status_error))
+        statusDot.setTextColor(getColor(R.color.status_error))
     }
 
     override fun onStatesLoaded(entities: List<Entity>) {
@@ -559,6 +642,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun applySelection() {
         val shown = selectEntities(allEntities)
         adapter.submit(shown)
+        layoutTiles(shown.size)
         empty.visibility = if (shown.isEmpty()) View.VISIBLE else View.GONE
         refreshKnobNow()
     }
@@ -622,6 +706,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
          * requête réseau supplémentaire au même instant se voit à l'affichage.
          */
         const val UPDATE_CHECK_DELAY_MS = 8000L
+
+        /** Au-dela, la grille defile plutot que d'ecraser les tuiles. */
+        const val MAX_TILE_ROWS = 3
 
         /** En dessous de ce délai entre deux impulsions, on considère la rotation rapide. */
         const val FAST_ROTATION_MS = 200L

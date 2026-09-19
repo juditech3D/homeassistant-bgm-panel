@@ -15,4 +15,23 @@
     <color name="status_error">#FFE05252</color>
     <color name="text_primary">#FFFFFFFF</color>
     <color name="text_secondary">#FFAAAFB9</color>
+    <color name="text_tertiary">#FF6B7280</color>
+
+    <!-- Remplissage indiquant le niveau d'une entite reglable, sous la tuile. -->
+    <color name="level_track">#33FFFFFF</color>
+    <color name="level_fill">#FF00AAFF</color>
+
+    <!--
+        Teintes par domaine, pour le filigrane de fond des tuiles. Elles reprennent les
+        conventions de l'interface web de Home Assistant : l'ambre de l'eclairage, le
+        bleu des ouvrants, l'orange du chauffage. L'oeil identifie la fonction avant
+        d'avoir lu le libelle.
+    -->
+    <color name="domain_light">#FFFFB74D</color>
+    <color name="domain_cover">#FF64B5F6</color>
+    <color name="domain_climate">#FFFF8A65</color>
+    <color name="domain_media">#FFBA68C8</color>
+    <color name="domain_sensor">#FF4DB6AC</color>
+    <color name="domain_security">#FFE57373</color>
+    <color name="domain_default">#FF00AAFF</color>
 </resources>

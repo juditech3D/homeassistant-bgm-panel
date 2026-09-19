@@ -1,43 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    Une tuile du tableau de bord.
+
+    La hauteur est fixée à l'exécution par MainActivity, qui répartit la place
+    disponible entre les lignes : avec quatre entités on veut de grandes tuiles
+    lisibles de loin, avec vingt il en faut de plus petites. Une hauteur figée ici
+    laisserait les trois quarts de l'écran vides, ce qu'un panneau mural ne pardonne pas.
+
+    Le fond porte l'icône de la fonction en filigrane, teintée selon le domaine. Plutôt
+    que d'embarquer des photographies — lourdes, pixelisées à l'agrandissement et
+    soumises à des licences — on réutilise la police d'icônes déjà présente : c'est
+    vectoriel, cela pèse zéro octet de plus, et l'œil identifie une lampe d'un volet
+    avant même d'avoir lu le libellé.
+
+    clipChildren empêche le filigrane de déborder des coins arrondis.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="128dp"
-    android:layout_margin="5dp"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="8dp"
+    android:layout_margin="6dp"
+    android:clipChildren="true"
+    android:clipToPadding="true"
     android:background="@drawable/tile_background">
 
-    <!-- Icône Material Design, rendue comme un caractère de la police MDI. -->
     <TextView
-        android:id="@+id/tile_icon"
+        android:id="@+id/tile_watermark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="-14dp"
         android:includeFontPadding="false"
-        android:textColor="@color/tile_icon_tint"
-        android:textSize="28sp" />
+        android:textSize="104sp" />
 
-    <TextView
-        android:id="@+id/tile_value"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:maxLines="1"
-        android:text="—"
-        android:textColor="@color/tile_value"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tile_name"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="2"
-        android:text="Entité"
-        android:textColor="@color/tile_name"
-        android:textSize="12sp" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
 
-</LinearLayout>
+        <!-- Icône Material Design, rendue comme un caractère de la police MDI. -->
+        <TextView
+            android:id="@+id/tile_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textColor="@color/tile_icon_tint"
+            android:textSize="26sp" />
+
+        <!-- Pousse la valeur et le nom vers le bas de la tuile. -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tile_value"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="—"
+            android:textColor="@color/tile_value"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tile_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Entité"
+            android:textColor="@color/tile_name"
+            android:textSize="12sp" />
+
+        <!--
+            Niveau de l'entité, quand elle en a un. Masquée pour les entités binaires :
+            une barre toujours pleine ou toujours vide n'apprendrait rien.
+        -->
+        <ProgressBar
+            android:id="@+id/tile_level"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progressDrawable="@drawable/level_bar"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -26,8 +26,10 @@ data class Entity(
             "media_player" -> if (attributes.has("volume_level")) Adjustable.VOLUME else null
             "cover" -> Adjustable.POSITION
             "fan" -> Adjustable.PERCENTAGE
-            // Entité locale : le volume de l'amplificateur du panneau lui-même.
-            PANEL_DOMAIN -> Adjustable.VOLUME
+            // Entités locales : seule celle du volume porte un niveau. L'assistant et
+            // le micro sont binaires — les déclarer réglables affichait une barre de
+            // niveau sur leur tuile, et le bouton rotatif prétendait les ajuster.
+            PANEL_DOMAIN -> if (attributes.has("volume_level")) Adjustable.VOLUME else null
             else -> null
         }
 
