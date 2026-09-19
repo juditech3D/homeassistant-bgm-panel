@@ -208,9 +208,27 @@ Pas de ligne d'interruption déclarée, ce qui serait de toute façon rédhibito
 capteur de proximité censé réveiller l'écran. Rien non plus dans `/proc/vendor/` qui
 permettrait de l'alimenter à la main.
 
-> Ce que l'on **voit** en façade, près du bord, a de bonnes chances d'être le **récepteur
-> infrarouge**, lui bien présent et fonctionnel (`gpio_ir_recv`, `event4`). Pour trancher :
-> `getevent /dev/input/event4` en pointant une télécommande dessus.
+> **Le récepteur infrarouge est dans le même cas.** Le pilote `gpio_ir_recv` est chargé,
+> `event4` existe, `rc0` annonce une douzaine de protocoles — et pourtant, après des
+> dizaines d'appuis sur une télécommande à moins d'un mètre, tous protocoles activés :
+>
+> ```
+> 65:   0   0   0   0   gpio0  17  Edge   gpio-ir-recv-irq
+> ```
+>
+> **Zéro interruption depuis le démarrage.** La broche n'a jamais vu le moindre front, là
+> où le tactile en compte 6129 et le bouton rotatif 142. Aucune photodiode ne répond.
+>
+> `/proc/interrupts` est d'ailleurs le bon outil pour ce genre de question : il ne dépend
+> ni d'un pilote correctement lié, ni des tampons de `getevent`, qui ne vide sa sortie
+> qu'à la sortie du processus — un `getevent -c 6` tué par un `timeout` perd tout ce
+> qu'il avait capturé, et fait passer un périphérique vivant pour muet.
+
+**Un motif se dégage** : l'arbre matériel de ce panneau est partagé avec des variantes
+mieux dotées, et il déclare plusieurs composants qui ne sont pas montés — capteur de
+luminosité, capteur de proximité, récepteur infrarouge. À chaque fois, le logiciel
+annonce le matériel et le matériel ne répond pas. Avant de bâtir quoi que ce soit sur un
+périphérique de ce panneau, vérifier son compteur dans `/proc/interrupts`.
 
 **Conséquences** : le réveil de l'écran par approche est impossible, et les capteurs
 `panneau_luminosite` et `panneau_presence` ne peuvent rien publier. L'application le
