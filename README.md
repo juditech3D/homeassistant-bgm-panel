@@ -288,7 +288,19 @@ Le panneau vérifie au démarrage si l'option est cochée, et **n'installe jamai
 accord** : il propose, on accepte. Sur un panneau rooté — ce qui est le cas de série —
 l'installation passe par `pm install -r`, donc **sans toucher l'écran et sans perdre les
 réglages**, jeton compris. Sans root, l'installateur d'Android prend le relais et demande
-confirmation à l'écran.
+confirmation à l'écran. Dans les deux cas, le tableau de bord **revient de lui-même**
+une fois la mise à jour posée, sur `ACTION_MY_PACKAGE_REPLACED`.
+
+> Chaîne vérifiée de bout en bout sur le panneau : détection de la version publiée,
+> proposition, téléchargement, installation silencieuse, retour automatique à l'écran,
+> jeton Home Assistant intact après quatre mises à jour successives.
+>
+> Un piège au passage, pour qui voudrait s'en inspirer : **aucun shell lancé par
+> l'application ne survit à sa propre mise à jour**, même détaché par `nohup`.
+> `pm install -r` confie l'APK au service système puis tue le processus, et le shell
+> meurt avec lui — l'installation est déjà acquise, mais tout ce qui devait suivre est
+> perdu, en silence. `MY_PACKAGE_REPLACED` est le seul signal fiable, puisqu'il arrive
+> dans un processus neuf.
 
 ### 2. ADB par le réseau
 
