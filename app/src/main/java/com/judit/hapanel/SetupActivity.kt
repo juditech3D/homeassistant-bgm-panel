@@ -295,11 +295,6 @@ class SetupActivity : AppCompatActivity() {
         findViewById<Button>(R.id.update_check).setOnClickListener {
             prefs.updateSource = updateSourceField.text.toString()
             prefs.updateAuto = updateAutoField.isChecked
-        prefs.zigbeeEnabled = featureZigbee.isChecked
-        zigbeeDeviceField.text.toString().trim().takeIf { it.isNotEmpty() }
-            ?.let { prefs.zigbeeDevice = it }
-        zigbeePortField.text.toString().trim().toIntOrNull()
-            ?.let { prefs.zigbeePort = it }
             UpdateFlow(this, prefs).check(updateState)
         }
 
@@ -351,6 +346,11 @@ class SetupActivity : AppCompatActivity() {
         prefs.wifiFallback = wifiFallbackField.isChecked
         prefs.updateSource = updateSourceField.text.toString()
         prefs.updateAuto = updateAutoField.isChecked
+        prefs.zigbeeEnabled = featureZigbee.isChecked
+        zigbeeDeviceField.text.toString().trim().takeIf { it.isNotEmpty() }
+            ?.let { prefs.zigbeeDevice = it }
+        zigbeePortField.text.toString().trim().toIntOrNull()
+            ?.let { prefs.zigbeePort = it }
         prefs.screensaverMode = saverModeValues
             .getOrElse(saverModeField.selectedItemPosition) { "anime" }
         prefs.chimeFile = chimeValues.getOrElse(chimeChoiceField.selectedItemPosition) { "" }
