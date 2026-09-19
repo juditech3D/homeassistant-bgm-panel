@@ -1305,16 +1305,71 @@ s'obtient par `getProfileProxy(context, listener, 11)`, et `connect`/`disconnect
 s'appellent par réflexion. Android 8.1 étant antérieur au filtrage des API masquées
 (API 28), l'appel passe sans contournement.
 
-### Aucune puce Zigbee
+### ✅ Une radio Zigbee Silicon Labs, sur `/dev/ttyS3`
 
-L'application `com.sznaner.gateway` est présente mais **n'a jamais été lancée** — son
-dossier de données ne contient que `cache`, `code_cache` et `lib`, sans préférences ni
-base. Côté matériel, rien : aucun pilote `zigbee`, `cc2531`, `cc2652`, `ezsp` ou `efr32`
-au démarrage du noyau, aucun nœud correspondant. **Cet exemplaire n'a pas de radio
-Zigbee**, quoi qu'en disent les fiches produit de la famille.
+**Correction d'une conclusion antérieure erronée.** Il avait d'abord été écrit que ce
+panneau n'avait pas de Zigbee, au motif qu'aucun pilote `zigbee`, `cc2652`, `ezsp` ou
+`efr32` n'apparaît au démarrage du noyau et qu'aucun nœud de l'arbre matériel n'y
+correspond. **Le raisonnement était faux** : un coprocesseur Zigbee relié en UART n'a
+besoin ni de pilote noyau dédié, ni de nœud spécifique. Il se pilote entièrement depuis
+l'espace utilisateur, à travers un `/dev/ttyS*` ordinaire. Chercher un pilote était
+chercher au mauvais endroit.
 
-Zigbee2MQTT est de toute façon une application Node.js : sa place est sur le serveur Home
-Assistant, pas sur le panneau.
+La preuve tient en deux lignes, obtenues directement depuis le shell :
+
+```
+$ printf 'À8¼~' > /dev/ttyS3     # trame ASH RST
+$ xxd < /dev/ttyS3
+00000000: 1ac1 020b 0a52 7e                        .....R~
+```
+
+`1A C0 38 BC 7E` est la trame **RST** du protocole ASH de Silicon Labs, et
+`1A C1 02 0B 0A 52 7E` la réponse **RSTACK** correspondante :
+
+| Octet | Sens |
+|---|---|
+| `1A` | CANCEL |
+| `C1` | trame de type RSTACK |
+| `02` | version 2 du protocole ASH |
+| `0B` | code de réinitialisation : reset logiciel |
+| `0A 52` | contrôle d'intégrité |
+| `7E` | fin de trame |
+
+C'est la signature d'un **NCP EmberZNet** (EFR32 ou EM35x). Le test d'usine du
+constructeur fait exactement la même chose : son activité `SerialPortActivity`,
+intitulée « 网关测试 » (test de passerelle), envoie `1ac038bc7e` — chaîne présente
+dans son code — et affiche la réponse reçue, qui elle **ne figure nulle part dans
+l'APK** : elle vient donc bien du matériel.
+
+> `com.sznaner.gateway`, présente sur le panneau, ne contient en revanche **aucune pile
+> Zigbee** : c'est une passerelle Tuya. Ne pas s'y fier pour conclure quoi que ce soit.
+
+**Ce que cela ouvre.** Zigbee2MQTT prend en charge les adaptateurs EZSP (pilote `ember`),
+tout comme l'intégration ZHA de Home Assistant. Le coprocesseur étant sur le panneau et
+Zigbee2MQTT tournant sur le serveur, il faut un pont série vers le réseau — un petit
+serveur TCP sur le panneau qui relaie `/dev/ttyS3`, côté serveur une adresse
+`tcp://<ip-du-panneau>:<port>`. C'est peu de code et l'application est bien placée pour
+l'héberger.
+
+### Répartition des ports série
+
+| Port | Rôle | Vérification |
+|---|---|---|
+| `/dev/ttyS0`, `/dev/ttyS1` | pile Bluetooth | propriétaire `bluetooth:net_bt` |
+| `/dev/ttyS2` | **RS485** du bornier (`485 A` / `485 B`) | s'ouvre, reste muet — rien n'est câblé |
+| `/dev/ttyS3` | **coprocesseur Zigbee** | répond à l'ASH RST |
+| `/dev/ttyS5` | désactivé | erreur d'E/S à l'ouverture |
+
+Le sens de transmission du RS485 se commande par `/proc/vendor/485_tx_mode`, qui vaut
+`receive` ou `transmit`.
+
+### Les quatre relais répondent
+
+Testés par l'activité `RelayTestingActivity` du constructeur et vérifiés dans
+`/proc/vendor/` : les quatre interrupteurs à l'écran correspondent, de gauche à droite, à
+`relay_first`, `relay_second`, `relay_third`, `relay_forth`. Le pilotage fonctionne dans
+les deux sens, l'état se relit. **Aucune borne de relais n'est exposée sur le bornier de
+cet exemplaire**, ils ne commandent donc rien d'extérieur.
 
 Ce qui reste ouvert côté matériel : trois contrôleurs USB hôte (`DWC OTG`, `EHCI`, `OHCI`)
 et `CONFIG_USB_ACM=y` dans le noyau — une clé Zigbee en **CDC-ACM** (ConBee II,

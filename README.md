@@ -74,8 +74,23 @@ relais, RS485) et `pm list packages | grep sznaner` (les applications d'origine)
 | Audio | codec RK809, amplificateur intégré, haut-parleur interne, 2 micros |
 | Réseau | Ethernet **et** Wi-Fi |
 | Bornier | `SPK L/R±`, `OUT L/R`, `AUX L/R`, `DB`, `GND`, `IO`, `OFF/ON`, `485 A/B` |
+| **Zigbee** | coprocesseur **Silicon Labs EmberZNet** sur `/dev/ttyS3` — répond à l'ASH RST |
+| Ports série | `ttyS0`/`ttyS1` Bluetooth, `ttyS2` RS485 du bornier, `ttyS3` Zigbee |
 
 Aucun tuner radio : les applications de radio préinstallées passent par le réseau.
+
+> **La radio Zigbee se cherche au bon endroit.** Aucun pilote noyau, aucun nœud de
+> l'arbre matériel ne la mentionne — un coprocesseur Zigbee relié en UART n'en a pas
+> besoin, il se pilote depuis l'espace utilisateur à travers un `/dev/ttyS*` ordinaire.
+> Pour vérifier sur votre panneau, envoyez-lui la trame de réinitialisation ASH :
+>
+> ```bash
+> adb shell su 0 sh -c 'printf "À8¼~" > /dev/ttyS3; xxd < /dev/ttyS3'
+> ```
+>
+> Une réponse `1ac1 020b 0a52 7e` signe un NCP **EmberZNet**. Zigbee2MQTT le prend en
+> charge par son pilote `ember`, tout comme l'intégration ZHA — il reste à relayer le port
+> série sur le réseau pour que le serveur y accède.
 
 ### Ce que ça donne si votre panneau diffère
 
@@ -380,9 +395,8 @@ bouton, API `/proc/vendor/`, carte des GPIO, écran rond, DLNA, assistant vocal,
 - **L'appui long sur le bouton est indétectable** : le matériel émet une impulsion de
   ~130 µs, pas un maintien.
 - Les bornes `IO` et `OFF/ON` ne sont pas identifiées.
-- **Aucune puce Zigbee sur cet exemplaire**, malgré l'application `com.sznaner.gateway`
-  présente mais jamais lancée : ni pilote, ni trace au démarrage du noyau. Zigbee2MQTT a
-  sa place sur le serveur Home Assistant, pas ici.
+- Les bornes de **relais** ne sont pas exposées sur le bornier, bien que les quatre
+  relais répondent en `/proc/vendor/` : ils ne commandent rien d'extérieur.
 - Sonnette câblée, assistant vocal et zoom caméra n'ont pas tous été validés à la main.
 
 ---
