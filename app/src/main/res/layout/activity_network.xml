@@ -156,12 +156,19 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/column_gap"
             android:layout_width="12dp"
             android:layout_height="match_parent" />
 
         <!-- ============================ BLUETOOTH ============================ -->
 
+        <!--
+            Masquée quand la fonction est décochée dans les réglages : le Wi-Fi occupe
+            alors toute la largeur. Laisser une colonne inerte laisserait croire à une
+            panne plutôt qu'à un choix.
+        -->
         <LinearLayout
+            android:id="@+id/bt_column"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"

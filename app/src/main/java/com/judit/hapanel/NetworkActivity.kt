@@ -62,6 +62,8 @@ class NetworkActivity : AppCompatActivity() {
     private lateinit var btList: ListView
     private lateinit var btEmpty: TextView
     private lateinit var btAction: Button
+    private lateinit var btColumn: View
+    private lateinit var columnGap: View
 
     private var wifiNetworks: List<WifiController.Network> = emptyList()
     private var btDevices: List<BluetoothController.Device> = emptyList()
@@ -108,6 +110,8 @@ class NetworkActivity : AppCompatActivity() {
         btList = findViewById(R.id.bt_list)
         btEmpty = findViewById(R.id.bt_empty)
         btAction = findViewById(R.id.bt_action)
+        btColumn = findViewById(R.id.bt_column)
+        columnGap = findViewById(R.id.column_gap)
     }
 
     // ------------------------------------------------------------------------ Wi-Fi
@@ -252,6 +256,15 @@ class NetworkActivity : AppCompatActivity() {
     // -------------------------------------------------------------------- Bluetooth
 
     private fun wireBluetooth() {
+        // Fonction décochée dans les réglages : la colonne disparaît et le Wi-Fi occupe
+        // toute la largeur. Sans cela le réglage n'aurait aucun effet visible, alors que
+        // l'application promet qu'une fonction désactivée est entièrement inactive.
+        if (!prefs.bluetoothEnabled) {
+            btColumn.visibility = View.GONE
+            columnGap.visibility = View.GONE
+            return
+        }
+
         btModeSpinner.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item,
             listOf(getString(R.string.bt_mode_in), getString(R.string.bt_mode_out))
@@ -273,9 +286,11 @@ class NetworkActivity : AppCompatActivity() {
 
         btSwitch.isChecked = bt.isEnabled
         btSwitch.isEnabled = bt.isSupported
+        // Ce commutateur allume ou éteint la **radio**, rien d'autre. Lui faire écrire
+        // aussi le réglage de fonctionnalité mêlerait deux idées distinctes : couper la
+        // radio un instant retirerait alors la carte des réglages, sans qu'on l'ait voulu.
         btSwitch.setOnClickListener {
             bt.isEnabled = btSwitch.isChecked
-            prefs.bluetoothEnabled = btSwitch.isChecked
             // L'adaptateur met plusieurs secondes à s'allumer : l'état réel n'est lisible
             // qu'ensuite, et le récepteur d'événements rafraîchira de toute façon.
             btList.postDelayed({ refreshBluetooth() }, 2500)
@@ -329,6 +344,7 @@ class NetworkActivity : AppCompatActivity() {
     }
 
     private fun refreshBluetooth() {
+        if (btColumn.visibility == View.GONE) return
         btSwitch.isChecked = bt.isEnabled
         btModeHelp.setText(
             if (mode == BluetoothController.Mode.ENTREE) R.string.bt_mode_in_help
@@ -374,14 +390,19 @@ class NetworkActivity : AppCompatActivity() {
                 showWifi(wifi.networks())
             }
         }
-        btWatcher = bt.onChanges {
-            runOnUiThread {
-                // Le récepteur reçoit aussi les appareils trouvés un à un : on les garde,
-                // la liste de l'adaptateur ne les conservant pas entre deux recherches.
-                refreshBluetooth()
+        // Fonction décochée : aucun récepteur n'est posé. Les enregistrer pour ne rien
+        // en faire réveillerait l'activité à chaque événement Bluetooth du système.
+        if (prefs.bluetoothEnabled) {
+            btWatcher = bt.onChanges {
+                runOnUiThread {
+                    // Le récepteur reçoit aussi les appareils trouvés un à un : on les
+                    // garde, la liste de l'adaptateur ne les conservant pas entre deux
+                    // recherches.
+                    refreshBluetooth()
+                }
             }
+            registerDiscoveryReceiver()
         }
-        registerDiscoveryReceiver()
     }
 
     /**
