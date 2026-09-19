@@ -135,7 +135,14 @@ class Updater(private val context: Context) {
         }
         .joinToString("\n")
         .trim()
-        .take(NOTES_LIMIT)
+        .let { text ->
+            // Couper net tombe au milieu d'un mot — « le réglage de fonctionnalit ».
+            // On recule jusqu'à la dernière césure et on annonce la suite.
+            if (text.length <= NOTES_LIMIT) text
+            else text.take(NOTES_LIMIT)
+                .substringBeforeLast(' ')
+                .trimEnd(',', ';', ':', '.') + " […]"
+        }
 
     private fun get(url: String): String? {
         val request = Request.Builder().url(url)
