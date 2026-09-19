@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Carte de lecture multiroom, à droite du tableau de bord.
+
+    Ce panneau est une centrale de sonorisation : la musique y a sa place à demeure,
+    pas au fond d'une tuile parmi d'autres. La carte montre ce qui joue, permet de
+    commander la lecture, et laisse passer d'une pièce à l'autre d'un doigt.
+
+    Masquée entièrement quand aucun lecteur n'existe sur le serveur : mieux vaut rendre
+    la largeur aux tuiles que d'afficher une carte vide.
+-->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/media_title"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:letterSpacing="0.08" />
+
+    <!--
+        Pochette. À défaut d'image — la plupart des flux locaux n'en ont pas — un grand
+        symbole de note tient la place, plutôt qu'un rectangle vide.
+    -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:id="@+id/media_placeholder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:alpha="0.18"
+            android:includeFontPadding="false"
+            android:textColor="@color/domain_media"
+            android:textSize="86sp" />
+
+        <ImageView
+            android:id="@+id/media_art"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:contentDescription="@string/media_artwork" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/media_track"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/media_artist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <!-- Commandes de lecture. Grandes : on les vise au doigt, souvent de biais. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/media_previous"
+            style="@style/MediaButton" />
+
+        <TextView
+            android:id="@+id/media_play"
+            style="@style/MediaButton"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:textSize="38sp" />
+
+        <TextView
+            android:id="@+id/media_next"
+            style="@style/MediaButton" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/media_volume_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textColor="@color/text_secondary"
+            android:textSize="18sp" />
+
+        <SeekBar
+            android:id="@+id/media_volume"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:max="100" />
+    </LinearLayout>
+
+    <!--
+        Les pièces. Multiroom oblige : on veut passer du salon à la cuisine sans quitter
+        l'écran. Défile horizontalement dès qu'il y en a plus que la largeur n'en tient.
+    -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/media_rooms"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+</merge>

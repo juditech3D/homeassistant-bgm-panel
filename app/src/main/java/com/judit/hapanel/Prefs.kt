@@ -112,6 +112,11 @@ class Prefs(context: Context) {
         get() = sp.getInt(KEY_ZIGBEE_PORT, DEFAULT_ZIGBEE_PORT)
         set(v) = sp.edit().putInt(KEY_ZIGBEE_PORT, v.coerceIn(1024, 65535)).apply()
 
+    /** Colonne de lecture multiroom, à droite du tableau de bord. */
+    var mediaCardEnabled: Boolean
+        get() = sp.getBoolean(KEY_MEDIA_CARD, true)
+        set(v) = sp.edit().putBoolean(KEY_MEDIA_CARD, v).apply()
+
     /** Audio Bluetooth : réception depuis un téléphone, ou émission vers une enceinte. */
     var bluetoothEnabled: Boolean
         get() = sp.getBoolean(KEY_BLUETOOTH, false)
@@ -276,6 +281,7 @@ class Prefs(context: Context) {
         const val KEY_WIFI_FALLBACK = "wifi_fallback"
         const val KEY_UPDATE_SOURCE = "update_source"
         const val KEY_UPDATE_AUTO = "update_auto"
+        const val KEY_MEDIA_CARD = "feature_media_card"
         const val KEY_ZIGBEE = "feature_zigbee"
         const val KEY_ZIGBEE_DEVICE = "zigbee_device"
         const val KEY_ZIGBEE_PORT = "zigbee_port"

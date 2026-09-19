@@ -6,7 +6,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@drawable/dashboard_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -35,6 +35,14 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/greeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <TextView
                     android:id="@+id/clock"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -57,6 +65,53 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
+
+            <!--
+                Météo, reprise de Home Assistant. Sur un panneau d'entrée, c'est
+                l'information qu'on consulte le plus après l'heure. Masquée si le
+                serveur n'expose aucune entité de météo.
+            -->
+            <LinearLayout
+                android:id="@+id/weather"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="22dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/weather_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/domain_light"
+                    android:textSize="30sp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/weather_temp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="19sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/weather_condition"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
 
             <!-- Pastille d'état : verte connecté, rouge sinon. -->
             <TextView
@@ -108,15 +163,41 @@
             android:textColor="@color/text_secondary"
             android:visibility="gone" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/tiles"
+        <!--
+            Les tuiles a gauche, la musique a droite. Sur une centrale de sonorisation,
+            la lecture merite une colonne a demeure plutot qu'une tuile noyee parmi les
+            lampes — et le format 1024x600 laisse la place aux deux.
+        -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:clipToPadding="false"
-            android:scrollbars="none" />
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tiles"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:clipToPadding="false"
+                android:scrollbars="none" />
+
+            <com.judit.hapanel.MediaCardView
+                android:id="@+id/media_card"
+                android:layout_width="268dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/card_background"
+                android:padding="16dp"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <!--
             Rappel du fonctionnement du bouton, en pied de page et discret : utile les

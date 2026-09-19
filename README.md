@@ -37,6 +37,10 @@ en vues Android classiques.
 - **Wi-Fi et Bluetooth** réglables depuis le panneau : recherche des réseaux, saisie de la
   clé avec possibilité de l'afficher, et audio Bluetooth **dans les deux sens** — recevoir
   la musique d'un téléphone, ou diffuser vers une enceinte.
+- **Carte musique multiroom** : une colonne dédiée à droite — pochette, titre, commandes
+  de lecture, volume, et des pastilles pour passer d'une pièce à l'autre.
+- **Bandeau d'accueil** : salutation selon l'heure, horloge, date et météo reprise de
+  Home Assistant.
 - **Pont Zigbee** : le panneau embarque un coprocesseur Zigbee EmberZNet sur son port
   série ; l'application l'expose sur le réseau pour que **Zigbee2MQTT ou ZHA** s'en
   servent depuis le serveur Home Assistant.

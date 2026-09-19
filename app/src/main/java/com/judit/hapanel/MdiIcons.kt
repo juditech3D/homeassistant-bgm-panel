@@ -60,8 +60,13 @@ object MdiIcons {
      * au-delà du plan multilingue de base, ils demandent donc une paire de substitution :
      * d'où `Character.toChars` plutôt qu'un simple `Char`.
      */
-    fun glyphFor(entity: Entity): String {
-        val name = iconName(entity)
+    fun glyphFor(entity: Entity): String = glyph(iconName(entity))
+
+    /**
+     * Le caractère d'une icône désignée par son nom MDI, par exemple « play-circle ».
+     * Sert aux icônes fixes de l'interface, qui ne dépendent d'aucune entité.
+     */
+    fun glyph(name: String): String {
         val cp = codepoints[name] ?: codepoints[FALLBACK] ?: return ""
         return String(Character.toChars(cp))
     }

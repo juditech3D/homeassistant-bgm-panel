@@ -105,6 +105,17 @@
     <string name="bt_forget">Oublier</string>
     <string name="bt_action_failed">%1$s : le système a refusé</string>
 
+    <string name="greeting_morning">Bonjour</string>
+    <string name="greeting_afternoon">Bon après-midi</string>
+    <string name="greeting_evening">Bonsoir</string>
+
+    <!-- Carte musique multiroom -->
+    <string name="media_title">MUSIQUE</string>
+    <string name="media_artwork">Pochette</string>
+    <string name="media_nothing">Rien en cours</string>
+    <string name="media_idle">Silencieux</string>
+    <string name="feature_media_card">Carte musique multiroom</string>
+
     <!-- Pont Zigbee -->
     <string name="section_zigbee">Zigbee</string>
     <string name="zigbee_title">Pont Zigbee</string>
