@@ -34,6 +34,11 @@ en vues Android classiques.
   lui envoyer de l'audio (annonces, TTS, musique) sur son haut-parleur ou ses sorties
   amplifiées.
 - **Capteurs publiés** vers Home Assistant : volume, état du micro, sonnette, avertisseur.
+- **Wi-Fi et Bluetooth** réglables depuis le panneau : recherche des réseaux, saisie de la
+  clé avec possibilité de l'afficher, et audio Bluetooth **dans les deux sens** — recevoir
+  la musique d'un téléphone, ou diffuser vers une enceinte.
+- **Mise à jour par le réseau** : le panneau va chercher lui-même sa nouvelle version, ce
+  qui évite de le démonter de sa boîte d'encastrement.
 - **Chaque fonction s'active ou se désactive** séparément dans les réglages : un panneau
   dépourvu d'un matériel n'essaie jamais de s'en servir.
 
@@ -225,6 +230,87 @@ produit simplement un APK non signé.
 
 ---
 
+## Réseau : Ethernet, Wi-Fi, Bluetooth
+
+Le panneau se règle depuis **Réglages → Réseau → Wi-Fi et Bluetooth…**.
+
+### Wi-Fi
+
+Il n'y a aucune raison de s'en occuper tant que le RJ45 répond : l'écran l'annonce et
+laisse le Wi-Fi de côté. **C'est seulement quand aucune liaison filaire n'est détectée que
+cet écran s'ouvre de lui-même au démarrage** — encastré dans une boîte électrique, le
+panneau n'aurait sinon plus aucun moyen de revenir sur le réseau.
+
+La recherche liste les réseaux avec leur réception et leur protection, signale ceux déjà
+enregistrés, et la clé peut être **affichée pendant la saisie** : au doigt, une clé WPA de
+vingt caractères se tape mal en aveugle. Un appui long sur un réseau enregistré l'oublie.
+
+> Android 8 ne rend les résultats de balayage qu'aux applications qui détiennent
+> l'autorisation de localisation, **et seulement si la localisation est activée** dans le
+> système. Sur un panneau mural sans GPS elle est souvent éteinte, et la recherche
+> renverrait alors une liste vide sans la moindre erreur. L'écran le détecte, le dit, et
+> propose de l'activer.
+
+### Bluetooth audio, dans les deux sens
+
+L'image Android de ce panneau déclare **les deux rôles A2DP** — vérifié sur l'appareil :
+`com.android.bluetooth` expose `a2dp.A2dpService` comme `a2dpsink.A2dpSinkService`. Le
+sens se choisit donc explicitement :
+
+| Sens | Ce qui se passe |
+|---|---|
+| **Entrée** | Le panneau se rend visible ; un téléphone vient s'y connecter et sa musique sort sur le haut-parleur interne et les bornes d'enceintes. |
+| **Sortie** | Le panneau cherche les enceintes et casques alentour et s'y connecte. Son propre haut-parleur se tait. |
+
+Les deux rôles coexistent dans Android, mais pas sur le même flux : appairer une enceinte
+pendant qu'un téléphone diffuse coupe le son sans explication. D'où un réglage plutôt
+qu'un mélange. Un appui sur un appareil l'appaire ou s'y connecte, un appui long propose
+de le déconnecter ou de l'oublier.
+
+---
+
+## Mettre à jour sans démonter le panneau
+
+Ces panneaux s'encastrent dans une boîte électrique : rebrancher un câble USB à chaque
+correction n'est pas tenable. Trois chemins, du plus commode au moins commode.
+
+### 1. La mise à jour intégrée
+
+Dans **Réglages → Réseau**, indiquez une source :
+
+- `compte/depot` — les **publications GitHub** du projet. La version est lue dans
+  l'étiquette (`v0.3`), l'APK dans les fichiers joints.
+- une **URL** vers un fichier JSON, à déposer où l'on veut — le dossier `www/` de Home
+  Assistant le sert déjà :
+  `{"versionName": "0.3", "url": "http://…/hapanel.apk", "notes": "…"}`
+
+Le panneau vérifie au démarrage si l'option est cochée, et **n'installe jamais rien sans
+accord** : il propose, on accepte. Sur un panneau rooté — ce qui est le cas de série —
+l'installation passe par `pm install -r`, donc **sans toucher l'écran et sans perdre les
+réglages**, jeton compris. Sans root, l'installateur d'Android prend le relais et demande
+confirmation à l'écran.
+
+### 2. ADB par le réseau
+
+Aucun câble USB n'est nécessaire : `adb connect <ip-du-panneau>:5555` suffit, en Ethernet
+comme en Wi-Fi. Attention, **le port ne survit pas forcément à un redémarrage** : sur ce
+panneau, `service.adb.tcp.port` était bien à 5555 mais `persist.adb.tcp.port` était vide.
+Pour le rendre permanent :
+
+```bash
+adb shell su 0 setprop persist.adb.tcp.port 5555
+```
+
+ADB conserve son autorisation par clé RSA : seul un ordinateur déjà accepté peut se
+connecter. C'est néanmoins un port ouvert en permanence sur le réseau local — à mettre en
+regard du fait que, sans lui, un redémarrage malheureux oblige à démonter le panneau.
+
+### 3. Le câble USB
+
+Le dernier recours, celui qu'on veut éviter.
+
+---
+
 ## Préparer le panneau
 
 Deux applications d'origine doivent être désactivées, sans quoi l'application ne peut pas
@@ -277,6 +363,9 @@ bouton, API `/proc/vendor/`, carte des GPIO, écran rond, DLNA, assistant vocal,
 - **L'appui long sur le bouton est indétectable** : le matériel émet une impulsion de
   ~130 µs, pas un maintien.
 - Les bornes `IO` et `OFF/ON` ne sont pas identifiées.
+- **Aucune puce Zigbee sur cet exemplaire**, malgré l'application `com.sznaner.gateway`
+  présente mais jamais lancée : ni pilote, ni trace au démarrage du noyau. Zigbee2MQTT a
+  sa place sur le serveur Home Assistant, pas ici.
 - Sonnette câblée, assistant vocal et zoom caméra n'ont pas tous été validés à la main.
 
 ---

@@ -9,9 +9,22 @@
          reste invisible pour Home Assistant. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- Choisir un réseau Wi-Fi depuis l'application : l'interface d'origine, seule à le
+         permettre, doit être désactivée pour que le bouton rotatif fonctionne. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- Android 6 et suivants refusent les résultats de balayage Wi-Fi et la découverte
+         Bluetooth sans autorisation de localisation, et le font en silence. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Audio Bluetooth, dans les deux sens : recevoir d'un téléphone (A2DP sink) ou
+         émettre vers une enceinte (A2DP source). -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <!-- Assistant vocal. Le micro ne s'ouvre que sur action explicite, jamais en
          continu, et le mode privé le coupe entièrement. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Mise à jour par le réseau. Le panneau étant encastré dans une boîte électrique,
+         le démonter pour brancher un câble USB n'est pas envisageable à chaque version. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:allowBackup="true"
@@ -39,6 +52,19 @@
             stateHidden : avec plus d'un millier d'entités, la liste doit être visible
             d'emblée. Le clavier ne s'ouvre que si l'on touche le champ de recherche.
         -->
+        <!--
+            Réseau et Bluetooth. S'ouvre de lui-même au démarrage quand aucune liaison
+            filaire ne répond : c'est alors le seul moyen de reconnecter le panneau sans
+            passer par un câble et ADB.
+        -->
+        <activity
+            android:name=".NetworkActivity"
+            android:exported="false"
+            android:label="@string/network_title"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateHidden|adjustResize"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
         <activity
             android:name=".EntityPickerActivity"
             android:exported="false"
@@ -68,6 +94,21 @@
         <service
             android:name=".dlna.DlnaRendererService"
             android:exported="false" />
+
+        <!--
+            Expose l'APK téléchargé à l'installateur d'Android. Utilisé seulement en
+            solution de repli : sur un panneau rooté, « pm install -r » installe sans
+            rien demander, ce qui est bien préférable pour un appareil encastré.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <!-- Relance le tableau de bord après une coupure de courant. -->
         <receiver

@@ -49,6 +49,13 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var featureVendorHw: CheckBox
     private lateinit var featureDoorbell: CheckBox
     private lateinit var featureDlna: CheckBox
+    private lateinit var featureBluetooth: CheckBox
+    private lateinit var wifiFallbackField: CheckBox
+    private lateinit var updateSourceField: EditText
+    private lateinit var updateAutoField: CheckBox
+    private lateinit var updateState: TextView
+
+    private lateinit var updater: Updater
 
     /**
      * Les caméras proposées, entité par entité. L'index 0 vaut toujours « Aucune ».
@@ -74,6 +81,7 @@ class SetupActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_setup)
         chimePlayer = ChimePlayer(this, prefs)
+        updater = Updater(this)
 
         bindFields()
         fillFromPrefs()
@@ -85,6 +93,7 @@ class SetupActivity : AppCompatActivity() {
         setupSection(R.id.header_connection, R.id.section_connection, !prefs.isConfigured)
         setupSection(R.id.header_entities, R.id.section_entities, false)
         setupSection(R.id.header_display, R.id.section_display, false)
+        setupSection(R.id.header_network, R.id.section_network, false)
         setupSection(R.id.header_audio, R.id.section_audio, false)
 
         // Toucher le fond referme le clavier, qui masque sinon la moitié de l'écran.
@@ -119,6 +128,11 @@ class SetupActivity : AppCompatActivity() {
         featureVendorHw = findViewById(R.id.feature_vendor_hw)
         featureDoorbell = findViewById(R.id.feature_doorbell)
         featureDlna = findViewById(R.id.feature_dlna)
+        featureBluetooth = findViewById(R.id.feature_bluetooth)
+        wifiFallbackField = findViewById(R.id.wifi_fallback)
+        updateSourceField = findViewById(R.id.update_source)
+        updateAutoField = findViewById(R.id.update_auto)
+        updateState = findViewById(R.id.update_state)
     }
 
     private fun fillFromPrefs() {
@@ -140,6 +154,11 @@ class SetupActivity : AppCompatActivity() {
         featureVendorHw.isChecked = prefs.vendorHardwareEnabled
         featureDoorbell.isChecked = prefs.doorbellEnabled
         featureDlna.isChecked = prefs.dlnaEnabled
+        featureBluetooth.isChecked = prefs.bluetoothEnabled
+        wifiFallbackField.isChecked = prefs.wifiFallback
+        updateSourceField.setText(prefs.updateSource)
+        updateAutoField.isChecked = prefs.updateAuto
+        updateState.text = getString(R.string.update_installed, updater.installedVersion)
 
         doorbellSecondsField.setText(prefs.doorbellCameraSeconds.toString())
         // Pré-rempli avec l'hôte du serveur Home Assistant : go2rtc y tourne le plus
@@ -235,6 +254,18 @@ class SetupActivity : AppCompatActivity() {
             if (saveAll()) startActivity(Intent(this, EntityPickerActivity::class.java))
         }
 
+        // Le Wi-Fi et le Bluetooth se règlent hors de cet écran : ce sont des listes
+        // vivantes, qui se rafraîchissent, et non des champs à enregistrer.
+        findViewById<Button>(R.id.open_network).setOnClickListener {
+            startActivity(Intent(this, NetworkActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.update_check).setOnClickListener {
+            prefs.updateSource = updateSourceField.text.toString()
+            prefs.updateAuto = updateAutoField.isChecked
+            UpdateFlow(this, prefs).check(updateState)
+        }
+
         findViewById<Button>(R.id.chime_test).setOnClickListener {
             // Enregistrer d'abord, sinon on entendrait le carillon précédent.
             prefs.chimeFile = chimeValues.getOrElse(chimeChoiceField.selectedItemPosition) { "" }
@@ -279,6 +310,10 @@ class SetupActivity : AppCompatActivity() {
         prefs.vendorHardwareEnabled = featureVendorHw.isChecked
         prefs.doorbellEnabled = featureDoorbell.isChecked
         prefs.dlnaEnabled = featureDlna.isChecked
+        prefs.bluetoothEnabled = featureBluetooth.isChecked
+        prefs.wifiFallback = wifiFallbackField.isChecked
+        prefs.updateSource = updateSourceField.text.toString()
+        prefs.updateAuto = updateAutoField.isChecked
         prefs.screensaverMode = saverModeValues
             .getOrElse(saverModeField.selectedItemPosition) { "anime" }
         prefs.chimeFile = chimeValues.getOrElse(chimeChoiceField.selectedItemPosition) { "" }

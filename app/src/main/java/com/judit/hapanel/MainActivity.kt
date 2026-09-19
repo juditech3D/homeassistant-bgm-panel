@@ -86,6 +86,20 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         setContentView(R.layout.activity_main)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        // Le panneau est normalement câblé en RJ45. Ce n'est que si le filaire ne répond
+        // pas qu'il faut proposer le Wi-Fi : encastré dans une boîte électrique, il n'a
+        // plus d'autre moyen de revenir sur le réseau.
+        NetworkActivity.openIfNoNetwork(this, prefs)
+
+        // Recherche d'une mise à jour, sans rien installer sans accord. Différée de
+        // quelques secondes : le tableau de bord et la connexion à Home Assistant
+        // passent d'abord.
+        if (prefs.updateAuto) {
+            window.decorView.postDelayed({
+                if (!isFinishing) UpdateFlow(this, prefs).check()
+            }, UPDATE_CHECK_DELAY_MS)
+        }
+
         // Police et table des icônes : chargées une fois, depuis les ressources
         // embarquées, sans accès réseau.
         MdiIcons.load(this)
@@ -592,6 +606,13 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     companion object {
         const val TILE_COLUMNS = 6
         const val STEP = 0.05f
+
+        /**
+         * Délai avant la recherche de mise à jour au démarrage. Le tableau de bord et la
+         * connexion à Home Assistant sont prioritaires : sur ce matériel modeste, une
+         * requête réseau supplémentaire au même instant se voit à l'affichage.
+         */
+        const val UPDATE_CHECK_DELAY_MS = 8000L
 
         /** En dessous de ce délai entre deux impulsions, on considère la rotation rapide. */
         const val FAST_ROTATION_MS = 200L

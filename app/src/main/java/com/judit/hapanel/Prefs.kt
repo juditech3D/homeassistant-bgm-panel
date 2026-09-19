@@ -93,6 +93,43 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_ASSISTANT, true)
         set(v) = sp.edit().putBoolean(KEY_ASSISTANT, v).apply()
 
+    /** Audio Bluetooth : réception depuis un téléphone, ou émission vers une enceinte. */
+    var bluetoothEnabled: Boolean
+        get() = sp.getBoolean(KEY_BLUETOOTH, false)
+        set(v) = sp.edit().putBoolean(KEY_BLUETOOTH, v).apply()
+
+    /**
+     * Sens de l'audio Bluetooth : `ENTREE` (un téléphone diffuse vers le panneau) ou
+     * `SORTIE` (le panneau diffuse vers une enceinte). Voir [BluetoothController.Mode].
+     */
+    var bluetoothMode: String
+        get() = sp.getString(KEY_BLUETOOTH_MODE, "ENTREE") ?: "ENTREE"
+        set(v) = sp.edit().putString(KEY_BLUETOOTH_MODE, v).apply()
+
+    /**
+     * Où chercher les mises à jour : `proprietaire/depot` pour les publications GitHub,
+     * ou l'URL d'un fichier JSON. Vide = aucune recherche. Voir [Updater].
+     */
+    var updateSource: String
+        get() = sp.getString(KEY_UPDATE_SOURCE, DEFAULT_UPDATE_SOURCE) ?: ""
+        set(v) = sp.edit().putString(KEY_UPDATE_SOURCE, v.trim()).apply()
+
+    /** Chercher une mise à jour au démarrage, sans rien installer sans accord. */
+    var updateAuto: Boolean
+        get() = sp.getBoolean(KEY_UPDATE_AUTO, true)
+        set(v) = sp.edit().putBoolean(KEY_UPDATE_AUTO, v).apply()
+
+    /**
+     * Ouvrir l'écran de réseau au démarrage quand aucune liaison filaire n'est détectée.
+     *
+     * Le panneau est normalement câblé en RJ45 : tant que l'Ethernet répond, il n'y a
+     * aucune raison de demander quoi que ce soit. C'est seulement quand il ne répond pas
+     * que le Wi-Fi devient la seule issue — et qu'il faut pouvoir le configurer sans ADB.
+     */
+    var wifiFallback: Boolean
+        get() = sp.getBoolean(KEY_WIFI_FALLBACK, true)
+        set(v) = sp.edit().putBoolean(KEY_WIFI_FALLBACK, v).apply()
+
     /** Dossier où déposer les carillons de la sonnette. */
     var chimeFolder: String
         get() = sp.getString(KEY_CHIME_FOLDER, DEFAULT_CHIME_FOLDER) ?: DEFAULT_CHIME_FOLDER
@@ -215,6 +252,17 @@ class Prefs(context: Context) {
         const val KEY_KNOB_SCREEN = "feature_knob_screen"
         const val KEY_VENDOR_HW = "feature_vendor_hw"
         const val KEY_PANEL_VOLUME = "feature_panel_volume"
+        const val KEY_BLUETOOTH = "feature_bluetooth"
+        const val KEY_BLUETOOTH_MODE = "bluetooth_mode"
+        const val KEY_WIFI_FALLBACK = "wifi_fallback"
+        const val KEY_UPDATE_SOURCE = "update_source"
+        const val KEY_UPDATE_AUTO = "update_auto"
+
+        /**
+         * Le dépôt public du projet. C'est la source par défaut : qui installe
+         * l'application depuis ce dépôt veut en recevoir les mises à jour.
+         */
+        const val DEFAULT_UPDATE_SOURCE = "judit/ha-panel"
 
         const val KEY_FRIGATE = "frigate_url"
 

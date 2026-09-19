@@ -1172,3 +1172,101 @@ deviner, avec le style du constructeur, et ce sont ses ressources.
 - [ ] Signature de release et build `assembleRelease` (actuellement en debug)
 - [ ] Gérer le cas où Home Assistant redémarre : la reconnexion fonctionne, mais un
       message plus explicite à l'écran serait souhaitable
+
+
+---
+
+## 12. Réseau, Bluetooth et mise à jour
+
+Relevés sur l'appareil le 2026-09-19.
+
+### Interfaces
+
+`eth0` (RJ45, liaison normale), `wlan0` (pilote `bcmdhd`), `lo`, `sit0`. Le panneau était
+câblé en Ethernet, le Wi-Fi activé mais non associé. La détection d'Ethernet se fait en
+lisant directement les interfaces : `ConnectivityManager` ne renseigne pas toujours
+`TRANSPORT_ETHERNET` sur ces images Rockchip, alors que `eth0` porte bel et bien son
+adresse.
+
+> Android 8 ne rend les résultats de balayage Wi-Fi qu'avec `ACCESS_FINE_LOCATION`
+> **et** la localisation activée dans le système. Faute de quoi la liste revient vide,
+> sans erreur — un symptôme parfaitement trompeur. L'application détecte le cas et propose
+> d'activer la localisation par `su`.
+
+L'API employée (`WifiConfiguration`, `addNetwork`, `enableNetwork`) est dépréciée depuis
+Android 10, mais son remplaçant `WifiNetworkSuggestion` n'existe qu'à partir de l'API 29 :
+sur Android 8.1 c'est la seule voie, et elle fonctionne.
+
+### Profils Bluetooth disponibles
+
+`dumpsys package com.android.bluetooth` révèle **les deux rôles A2DP** :
+
+| Service | Rôle |
+|---|---|
+| `a2dp.A2dpService` | émission — vers une enceinte ou un casque |
+| `a2dpsink.A2dpSinkService` | **réception** — depuis un téléphone |
+| `a2dpsink.mbs.A2dpMediaBrowserService` | métadonnées et commandes de lecture |
+| `avrcpcontroller.AvrcpControllerService` | télécommande AVRCP |
+| `hfpclient.HeadsetClientService` | mains libres |
+
+La réception est donc possible, ce qui n'est pas le cas de tous les appareils Android.
+`BluetoothProfile.A2DP_SINK` vaut 11 et reste masqué dans le SDK public : le mandataire
+s'obtient par `getProfileProxy(context, listener, 11)`, et `connect`/`disconnect`
+s'appellent par réflexion. Android 8.1 étant antérieur au filtrage des API masquées
+(API 28), l'appel passe sans contournement.
+
+### Aucune puce Zigbee
+
+L'application `com.sznaner.gateway` est présente mais **n'a jamais été lancée** — son
+dossier de données ne contient que `cache`, `code_cache` et `lib`, sans préférences ni
+base. Côté matériel, rien : aucun pilote `zigbee`, `cc2531`, `cc2652`, `ezsp` ou `efr32`
+au démarrage du noyau, aucun nœud correspondant. **Cet exemplaire n'a pas de radio
+Zigbee**, quoi qu'en disent les fiches produit de la famille.
+
+Zigbee2MQTT est de toute façon une application Node.js : sa place est sur le serveur Home
+Assistant, pas sur le panneau.
+
+Ce qui reste ouvert côté matériel : trois contrôleurs USB hôte (`DWC OTG`, `EHCI`, `OHCI`)
+et `CONFIG_USB_ACM=y` dans le noyau — une clé Zigbee en **CDC-ACM** (ConBee II,
+zig-a-zig-ah!) serait donc reconnue. En revanche `CONFIG_USB_SERIAL_CP210X` et
+`CONFIG_USB_SERIAL_FTDI_SIO` sont désactivés : les clés à base de CP210x ou FTDI, dont le
+Sonoff ZBDongle-P, ne le seraient pas sans recompiler le noyau.
+
+### Ports série
+
+```
+/dev/ttyS0  bluetooth:net_bt    pile Bluetooth
+/dev/ttyS1  bluetooth:net_bt    pile Bluetooth
+/dev/ttyS2  system:system       libre
+/dev/ttyS3  system:system       libre
+/dev/ttyS4  root:root
+/dev/ttyS5  root:root
+```
+
+Aucun processus ne les tient ouverts. `ttyS2` et `ttyS3` restent les candidats pour le bus
+RS485 du bornier.
+
+### ADB par le réseau
+
+`service.adb.tcp.port` valait 5555 mais **`persist.adb.tcp.port` était vide** : l'accès
+réseau ne survivait donc pas à un redémarrage. Sur un panneau encastré, c'est le genre
+d'oubli qui oblige à le démonter. Rendu permanent par :
+
+```bash
+adb shell su 0 setprop persist.adb.tcp.port 5555
+```
+
+ADB conserve son autorisation par clé RSA : seul un ordinateur déjà accepté peut se
+connecter.
+
+### Mise à jour intégrée
+
+Voir `Updater.kt` et `UpdateFlow.kt`. Deux sources : publications GitHub
+(`compte/depot`, via `api.github.com/repos/…/releases/latest`) ou fichier JSON à une URL
+libre. L'installation passe par `su 0 pm install -r`, qui **conserve les préférences**,
+donc le jeton Home Assistant ; à défaut de root, l'installateur système prend le relais
+via un `FileProvider`, avec confirmation à l'écran.
+
+Rien ne s'installe sans accord explicite : une application qui se remplace seule pendant
+qu'on s'en sert serait déroutante, et une version défectueuse installée sans qu'on l'ait
+voulu obligerait à démonter le panneau.

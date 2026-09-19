@@ -46,6 +46,86 @@
     <string name="hint_brightness">Luminosité écran (5 à 100 %)</string>
     <string name="wake_proximity">Réveiller l\'écran quand quelqu\'un s\'approche</string>
 
+    <!-- Réseau : Wi-Fi et Bluetooth -->
+    <string name="network_title">Réseau et Bluetooth</string>
+    <string name="open_network">Wi-Fi et Bluetooth…</string>
+    <string name="section_network">Réseau</string>
+    <string name="wifi_fallback">Proposer le Wi-Fi si le câble Ethernet ne répond pas</string>
+    <string name="feature_bluetooth">Audio Bluetooth</string>
+
+    <string name="wifi_title">Wi-Fi</string>
+    <string name="wifi_enable">Wi-Fi activé</string>
+    <string name="wifi_scan">Rechercher</string>
+    <string name="wifi_scanning">Recherche des réseaux…</string>
+    <string name="wifi_none_found">Aucun réseau trouvé</string>
+    <string name="wifi_on_ethernet">Le panneau est relié en Ethernet (%1$s). Le Wi-Fi n\'est pas nécessaire.</string>
+    <string name="wifi_no_ethernet">Aucune liaison Ethernet détectée.</string>
+    <string name="wifi_connected_to">Connecté à %1$s (%2$s)</string>
+    <string name="wifi_not_connected">Wi-Fi non connecté</string>
+    <string name="wifi_disabled">Wi-Fi désactivé</string>
+    <string name="wifi_saved">enregistré</string>
+    <string name="wifi_open">réseau ouvert</string>
+    <string name="wifi_secured">protégé</string>
+    <string name="wifi_password">Mot de passe</string>
+    <string name="wifi_show_password">Afficher le mot de passe</string>
+    <string name="wifi_connect">Se connecter</string>
+    <string name="wifi_forget">Oublier</string>
+    <string name="wifi_connecting_to">Connexion à %1$s…</string>
+    <string name="wifi_add_failed">Réseau refusé par le système</string>
+    <string name="wifi_connect_failed">Connexion refusée</string>
+    <string name="wifi_forgotten">%1$s oublié</string>
+    <string name="wifi_need_location">Android 8 n\'autorise la recherche de réseaux que si la localisation est activée.</string>
+    <string name="wifi_location_enable">Activer la localisation</string>
+    <string name="wifi_location_failed">Activation refusée : à faire dans les réglages Android.</string>
+
+    <string name="bt_title">Bluetooth</string>
+    <string name="bt_enable">Bluetooth activé</string>
+    <string name="bt_mode">Sens de l\'audio</string>
+    <string name="bt_mode_in">Entrée — recevoir la musique d\'un téléphone</string>
+    <string name="bt_mode_out">Sortie — diffuser vers une enceinte ou un casque</string>
+    <string name="bt_mode_in_help">Le panneau se rend visible ; c\'est le téléphone qui vient s\'y connecter. Le son sort sur le haut-parleur et les bornes d\'enceintes.</string>
+    <string name="bt_mode_out_help">Le panneau cherche les enceintes et casques alentour et s\'y connecte. Son propre haut-parleur se tait alors.</string>
+    <string name="bt_name">Nom du panneau</string>
+    <string name="bt_discoverable">Se rendre visible 5 min</string>
+    <string name="bt_discoverable_on">Visible pour les téléphones pendant 5 minutes</string>
+    <string name="bt_scan">Rechercher</string>
+    <string name="bt_scanning">Recherche des appareils…</string>
+    <string name="bt_none_found">Aucun appareil</string>
+    <string name="bt_unsupported">Ce panneau n\'a pas de Bluetooth</string>
+    <string name="bt_off">Bluetooth désactivé</string>
+    <string name="bt_waiting_phone">En attente d\'un téléphone</string>
+    <string name="bt_no_speaker">Aucune enceinte connectée</string>
+    <string name="bt_receiving_from">Reçoit de %1$s</string>
+    <string name="bt_sending_to">Diffuse vers %1$s</string>
+    <string name="bt_paired">appairé</string>
+    <string name="bt_connected">connecté</string>
+    <string name="bt_pairing">Appairage de %1$s…</string>
+    <string name="bt_connecting">Connexion à %1$s…</string>
+    <string name="bt_disconnect">Déconnecter</string>
+    <string name="bt_forget">Oublier</string>
+    <string name="bt_action_failed">%1$s : le système a refusé</string>
+
+    <!-- Mises à jour par le réseau -->
+    <string name="section_updates">Mises à jour</string>
+    <string name="updates_help">Le panneau va chercher lui-même sa nouvelle version : dépôt GitHub sous la forme « compte/depot », ou adresse d\'un fichier JSON déposé par exemple dans le dossier www de Home Assistant.</string>
+    <string name="hint_update_source">Dépôt GitHub ou adresse du fichier de version</string>
+    <string name="update_auto">Vérifier au démarrage</string>
+    <string name="update_check">Vérifier maintenant</string>
+    <string name="update_installed">Version installée : %1$s</string>
+    <string name="update_checking">Recherche d\'une mise à jour…</string>
+    <string name="update_up_to_date">Le panneau est à jour (%1$s)</string>
+    <string name="update_available">Version %1$s disponible</string>
+    <string name="update_install">Installer</string>
+    <string name="update_later">Plus tard</string>
+    <string name="update_downloading">Téléchargement… %1$d %%</string>
+    <string name="update_downloading_unknown">Téléchargement…</string>
+    <string name="update_installing">Installation, le panneau va redémarrer l\'application…</string>
+    <string name="update_no_source">Aucune source de mise à jour renseignée</string>
+    <string name="update_no_release">Aucune version publiée à cette adresse</string>
+    <string name="update_failed">Échec de la mise à jour</string>
+    <string name="update_http_error">Le serveur a répondu %1$d</string>
+    <string name="update_truncated">Fichier incomplet, installation annulée</string>
+
     <string name="use_tls">Utiliser HTTPS / WSS</string>
     <string name="publish_sensors">Publier les capteurs du panneau vers Home Assistant</string>
     <string name="connect">Se connecter</string>

@@ -103,6 +103,88 @@
                 android:layout_height="wrap_content"
                 android:text="@string/feature_dlna"
                 android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/feature_bluetooth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feature_bluetooth"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- ====================== RESEAU ET MISES A JOUR ====================== -->
+
+        <TextView
+            android:id="@+id/header_network"
+            style="@style/SectionHeader"
+            android:text="@string/section_network" />
+
+        <LinearLayout
+            android:id="@+id/section_network"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/open_network"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/open_network" />
+
+            <CheckBox
+                android:id="@+id/wifi_fallback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/wifi_fallback"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/updates_help"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/update_source"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_update_source"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/update_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/update_auto"
+                android:textColor="@color/text_primary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/update_check"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/update_check" />
+
+                <TextView
+                    android:id="@+id/update_state"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- ============================ CONNEXION ============================ -->

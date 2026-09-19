@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Chemin partagé avec l'installateur d'Android pour les mises à jour.
+
+    L'APK téléchargé est déposé dans le cache privé de l'application. Depuis Android 7,
+    lui passer une URI « file:// » lève FileUriExposedException : il faut un fournisseur
+    de contenu, et c'est le seul dossier qu'il expose.
+-->
+<paths>
+    <cache-path name="mises-a-jour" path="." />
+</paths>
