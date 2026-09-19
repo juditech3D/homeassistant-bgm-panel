@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    L'icône s'allume en couleur d'accentuation quand l'entité est active, et reste
+    discrète sinon. C'est le repère visuel le plus rapide à lire sur la grille.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true" android:color="@color/accent" />
+    <item android:color="@color/text_secondary" />
+</selector>

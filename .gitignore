@@ -1,0 +1,19 @@
+.gradle/
+build/
+app/build/
+local.properties
+
+# Signature : ni le trousseau ni les mots de passe ne doivent être versionnés.
+keystore.properties
+keystore/
+
+.idea/
+*.iml
+.DS_Store
+
+# Photos de travail prises pendant le developpement (le bornier, l'ecran...).
+# Volumineuses et sans interet pour qui reprend le projet.
+*.jpg
+*.jpeg
+*.png
+!app/src/main/res/**/*.png

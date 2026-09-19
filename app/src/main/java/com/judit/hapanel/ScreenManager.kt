@@ -1,0 +1,201 @@
+package com.judit.hapanel
+
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import java.io.File
+
+/**
+ * Mise en veille de l'écran principal et réveil.
+ *
+ * On pilote le rétroéclairage directement en sysfs plutôt que de s'en remettre à la
+ * veille d'Android : le tableau de bord maintient `FLAG_KEEP_SCREEN_ON` — indispensable
+ * pour qu'il reste affiché — ce qui neutralise justement la veille du système. En
+ * éteignant le rétroéclairage sans endormir Android, l'écran s'éteint vraiment tout en
+ * continuant de recevoir les touchers : le réveil au doigt fonctionne sans délai.
+ *
+ * `bl_power` appartient à root et `brightness` à system : ni l'un ni l'autre n'est
+ * accessible à une application ordinaire. On élargit donc leurs droits une fois au
+ * démarrage, via `su`. Sans root, on se rabat sur la luminosité de fenêtre, qui ne
+ * permet que d'assombrir — [fallbackOnly] le signale à l'appelant.
+ */
+class ScreenManager(private val prefs: Prefs) {
+
+    private val ui = Handler(Looper.getMainLooper())
+
+    @Volatile var isAsleep: Boolean = false
+        private set
+
+    /** Vrai si le root n'a pas pu être obtenu : on ne sait alors qu'assombrir. */
+    @Volatile var fallbackOnly: Boolean = false
+        private set
+
+    /** Notifié à chaque endormissement ou réveil, pour republier vers Home Assistant. */
+    var onSleepChanged: ((asleep: Boolean) -> Unit)? = null
+
+    /**
+     * Notifié à l'entrée et à la sortie de l'écran de veille — première étape, où
+     * l'écran reste allumé mais affiche photos ou animation.
+     */
+    var onScreensaverChanged: ((showing: Boolean) -> Unit)? = null
+
+    @Volatile var isScreensaverShowing: Boolean = false
+        private set
+
+    private val screensaverTask = Runnable { showScreensaver() }
+
+    /** Appelé quand on ne peut pas éteindre : l'activité assombrit sa fenêtre. */
+    var onFallbackBrightness: ((level: Float) -> Unit)? = null
+
+    private val sleepTask = Runnable { sleep() }
+
+    // --------------------------------------------------------------- démarrage
+
+    fun start() {
+        ensureWritable()
+        applyBrightness(prefs.screenBrightness)
+        wake()
+    }
+
+    fun stop() {
+        ui.removeCallbacks(sleepTask)
+        ui.removeCallbacks(screensaverTask)
+        hideScreensaver()
+        wake()
+    }
+
+    /**
+     * Élargit les droits des fichiers du rétroéclairage. À refaire à chaque démarrage :
+     * les permissions sysfs sont réinitialisées au redémarrage du panneau.
+     */
+    private fun ensureWritable() {
+        if (File(BL_POWER).canWrite() && File(BRIGHTNESS).canWrite()) {
+            fallbackOnly = false
+            return
+        }
+        try {
+            Runtime.getRuntime()
+                .exec(arrayOf("su", "0", "sh", "-c", "chmod 666 $BRIGHTNESS $BL_POWER"))
+                .waitFor()
+        } catch (e: Exception) {
+            Log.w(TAG, "su indisponible : ${e.message}")
+        }
+        fallbackOnly = !(File(BL_POWER).canWrite() && File(BRIGHTNESS).canWrite())
+        if (fallbackOnly) {
+            Log.w(TAG, "rétroéclairage non pilotable : on se limitera à assombrir")
+        }
+    }
+
+    // ------------------------------------------------------------ veille active
+
+    /** À appeler à chaque interaction : toucher, bouton rotatif, proximité. */
+    fun noteActivity() {
+        if (isAsleep) wake()
+        hideScreensaver()
+        rearm()
+    }
+
+    /**
+     * Réarme les deux étapes. Les deux délais partent de la dernière interaction : le
+     * plus court amène l'écran de veille, le plus long éteint la dalle.
+     */
+    private fun rearm() {
+        ui.removeCallbacks(sleepTask)
+        ui.removeCallbacks(screensaverTask)
+
+        val saver = prefs.screensaverSeconds
+        if (saver > 0) ui.postDelayed(screensaverTask, saver * 1000L)
+
+        val off = prefs.screenTimeoutSeconds
+        if (off > 0) ui.postDelayed(sleepTask, off * 1000L)
+    }
+
+    private fun showScreensaver() {
+        if (isScreensaverShowing || isAsleep) return
+        isScreensaverShowing = true
+        onScreensaverChanged?.invoke(true)
+    }
+
+    private fun hideScreensaver() {
+        if (!isScreensaverShowing) return
+        isScreensaverShowing = false
+        onScreensaverChanged?.invoke(false)
+    }
+
+    fun sleep() {
+        if (isAsleep) return
+        isAsleep = true
+        if (fallbackOnly) {
+            onFallbackBrightness?.invoke(0f)
+        } else {
+            write(BL_POWER, FB_BLANK_POWERDOWN)
+        }
+        onSleepChanged?.invoke(true)
+    }
+
+    fun wake() {
+        val was = isAsleep
+        isAsleep = false
+        if (fallbackOnly) {
+            onFallbackBrightness?.invoke(prefs.screenBrightness / 100f)
+        } else {
+            write(BL_POWER, FB_BLANK_UNBLANK)
+            applyBrightness(prefs.screenBrightness)
+        }
+        rearm()
+        if (was) onSleepChanged?.invoke(false)
+    }
+
+    // -------------------------------------------------------------- luminosité
+
+    /** Luminosité en pourcentage. Un minimum est imposé pour ne jamais tout noircir. */
+    fun applyBrightness(percent: Int) {
+        val clamped = percent.coerceIn(MIN_PERCENT, 100)
+        if (fallbackOnly) {
+            onFallbackBrightness?.invoke(clamped / 100f)
+            return
+        }
+        val max = read(MAX_BRIGHTNESS)?.toIntOrNull() ?: 255
+        write(BRIGHTNESS, Math.round(clamped * max / 100f))
+    }
+
+    fun brightnessPercent(): Int {
+        val max = read(MAX_BRIGHTNESS)?.toIntOrNull() ?: 255
+        val current = read(ACTUAL_BRIGHTNESS)?.toIntOrNull() ?: return prefs.screenBrightness
+        if (max <= 0) return prefs.screenBrightness
+        return Math.round(current * 100f / max)
+    }
+
+    // ------------------------------------------------------------------ sysfs
+
+    private fun write(path: String, value: Int) {
+        try {
+            File(path).writeText(value.toString())
+        } catch (e: Exception) {
+            Log.w(TAG, "écriture $path impossible : ${e.message}")
+        }
+    }
+
+    private fun read(path: String): String? = try {
+        // Le pilote renvoie parfois des caractères parasites avant la valeur.
+        File(path).readText().filter { it.isDigit() }.takeIf { it.isNotEmpty() }
+    } catch (e: Exception) {
+        null
+    }
+
+    private companion object {
+        const val TAG = "ScreenManager"
+        const val DIR = "/sys/class/backlight/backlight"
+        const val BRIGHTNESS = "$DIR/brightness"
+        const val ACTUAL_BRIGHTNESS = "$DIR/actual_brightness"
+        const val MAX_BRIGHTNESS = "$DIR/max_brightness"
+        const val BL_POWER = "$DIR/bl_power"
+
+        /** Constantes du sous-système fbdev. */
+        const val FB_BLANK_UNBLANK = 0
+        const val FB_BLANK_POWERDOWN = 4
+
+        /** En dessous, l'écran est illisible et on croirait l'appareil éteint. */
+        const val MIN_PERCENT = 5
+    }
+}

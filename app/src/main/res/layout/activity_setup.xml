@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Réglages en sections repliables.
+
+    La connexion — adresse, port, jeton — n'est réglée qu'une fois, et une fausse
+    manœuvre au doigt sur ces champs déconnecte le panneau. Elle est donc repliée par
+    défaut dès que le panneau est configuré, tandis que les réglages d'usage courant
+    restent accessibles.
+
+    focusableInTouchMode sur le conteneur permet de refermer le clavier en touchant le
+    fond, l'écran n'ayant aucun bouton retour matériel.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/setup_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/setup_title"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="@string/back"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- ========================= FONCTIONNALITÉS ========================= -->
+
+        <TextView
+            android:id="@+id/header_features"
+            style="@style/SectionHeader"
+            android:text="@string/section_features" />
+
+        <LinearLayout
+            android:id="@+id/section_features"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:text="@string/features_help"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/feature_knob_screen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feature_knob_screen"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/feature_panel_volume"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feature_panel_volume"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/feature_vendor_hw"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feature_vendor_hw"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/feature_doorbell"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feature_doorbell"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/feature_dlna"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feature_dlna"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- ============================ CONNEXION ============================ -->
+
+        <TextView
+            android:id="@+id/header_connection"
+            style="@style/SectionHeader"
+            android:text="@string/section_connection" />
+
+        <LinearLayout
+            android:id="@+id/section_connection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/host"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:hint="@string/hint_host"
+                    android:inputType="textUri"
+                    android:maxLines="1"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+
+                <EditText
+                    android:id="@+id/port"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:hint="@string/hint_port"
+                    android:inputType="number"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/token"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/hint_token"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/setup_help"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <CheckBox
+                android:id="@+id/tls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/use_tls"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- ============================= ENTITÉS ============================= -->
+
+        <TextView
+            android:id="@+id/header_entities"
+            style="@style/SectionHeader"
+            android:text="@string/section_entities" />
+
+        <LinearLayout
+            android:id="@+id/section_entities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/pinned"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_pinned"
+                android:inputType="textMultiLine"
+                android:maxLines="3"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
+
+            <Button
+                android:id="@+id/choose_entities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/choose_entities" />
+        </LinearLayout>
+
+        <!-- ============================ AFFICHAGE ============================ -->
+
+        <TextView
+            android:id="@+id/header_display"
+            style="@style/SectionHeader"
+            android:text="@string/section_display" />
+
+        <LinearLayout
+            android:id="@+id/section_display"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <EditText
+                    android:id="@+id/screensaver_delay"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/hint_saver_delay"
+                    android:inputType="number"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+
+                <Spinner
+                    android:id="@+id/screensaver_mode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:minWidth="170dp" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/photo_folder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_photo_folder"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/screen_timeout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/hint_timeout"
+                    android:inputType="number"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+
+                <EditText
+                    android:id="@+id/screen_brightness"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:hint="@string/hint_brightness"
+                    android:inputType="number"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/wake_proximity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/wake_proximity"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- ======================== AUDIO ET SONNETTE ======================== -->
+
+        <TextView
+            android:id="@+id/header_audio"
+            style="@style/SectionHeader"
+            android:text="@string/section_audio" />
+
+        <LinearLayout
+            android:id="@+id/section_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/chime_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <Spinner
+                    android:id="@+id/chime_choice"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp" />
+
+                <Button
+                    android:id="@+id/chime_test"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:minWidth="0dp"
+                    android:text="@string/chime_test"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/go2rtc_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_go2rtc"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/camera_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <Spinner
+                    android:id="@+id/doorbell_camera"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:layout_marginStart="12dp" />
+
+                <EditText
+                    android:id="@+id/doorbell_camera_seconds"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:hint="@string/hint_doorbell_camera_seconds"
+                    android:inputType="number"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/doorbell_test"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/doorbell_test" />
+
+            <CheckBox
+                android:id="@+id/chime_on_doorbell"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chime_on_doorbell"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/assistant_enabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/assistant_enabled"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/publish"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/publish_sensors"
+                android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/save" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#FF101216</color>
+    <color name="surface">#FF181B21</color>
+    <color name="accent">#FF00AAFF</color>
+
+    <color name="tile_off">#FF1E222A</color>
+    <color name="tile_on">#FF243447</color>
+    <color name="tile_selected">#FF1B3347</color>
+    <color name="tile_border">#FF2C313B</color>
+    <color name="tile_value">#FFFFFFFF</color>
+    <color name="tile_name">#FFAAAFB9</color>
+
+    <color name="status_ok">#FF4CAF50</color>
+    <color name="status_error">#FFE05252</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFAAAFB9</color>
+</resources>

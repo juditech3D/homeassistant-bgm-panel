@@ -1,0 +1,22 @@
+HA Panel
+Copyright (c) 2026 judit
+Distribue sous licence MIT (voir LICENSE).
+
+Ce produit embarque des travaux tiers :
+
+-------------------------------------------------------------------------------
+Material Design Icons (paquet @mdi/font)
+https://pictogrammers.com/library/mdi/
+
+Fichiers concernes :
+  app/src/main/assets/mdi.ttf
+  app/src/main/assets/mdi_codepoints.txt
+
+La police et la table de points de code sont distribuees sous licence
+Apache License 2.0 :
+  https://www.apache.org/licenses/LICENSE-2.0
+
+Les icones elles-memes sont publiees par Pictogrammers sous licence
+Apache 2.0 egalement. Aucune modification n'y a ete apportee ; la table de
+points de code est derivee mecaniquement de la feuille de style du paquet.
+-------------------------------------------------------------------------------

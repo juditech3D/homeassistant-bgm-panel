@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HA Panel</string>
+    <string name="setup_title">Configuration du panneau</string>
+
+    <string name="hint_host">Adresse du serveur Home Assistant</string>
+    <string name="hint_port">Port</string>
+    <string name="hint_token">Jeton d\'accès longue durée</string>
+    <string name="hint_pinned">Entités à afficher (vide = automatique)</string>
+
+    <string name="hint_saver_delay">Écran de veille après (s, 0 = jamais)</string>
+    <string name="hint_photo_folder">Dossier des photos du diaporama</string>
+    <string name="saver_animated">Fond animé</string>
+    <string name="saver_photos">Diaporama photos</string>
+    <string name="hint_timeout">Extinction totale après (s, 0 = jamais)</string>
+    <string name="chime_label">Carillon</string>
+    <string name="chime_test">Essayer</string>
+    <string name="chime_builtin">Carillon intégré</string>
+    <string name="chime_on_doorbell">Jouer le carillon quand on sonne (borne DB)</string>
+    <string name="back">Retour</string>
+    <string name="save">Enregistrer</string>
+    <string name="section_features">Fonctionnalités</string>
+    <string name="features_help">Active uniquement ce que ton panneau possède. Chaque fonction désactivée est entièrement inactive : rien n\'est lu, écrit ni publié.</string>
+    <string name="feature_knob_screen">Écran rond du bouton rotatif</string>
+    <string name="feature_panel_volume">Carte de volume de l\'amplificateur</string>
+    <string name="feature_vendor_hw">Matériel constructeur : anneau, avertisseur, relais, RS485</string>
+    <string name="feature_doorbell">Sonnette (borne DB) et carillon</string>
+    <string name="feature_dlna">Lecteur réseau DLNA (recevoir de l\'audio depuis Home Assistant)</string>
+
+    <string name="section_connection">Connexion au serveur</string>
+    <string name="section_entities">Entités affichées</string>
+    <string name="section_display">Écran et veille</string>
+    <string name="section_audio">Audio, sonnette et assistant</string>
+    <string name="camera_connecting">Connexion à la caméra…</string>
+    <string name="camera_unavailable">%1$s : aucune image — caméra hors service ?</string>
+    <string name="camera_scroll_hint">Glisser pour déplacer · pincer pour zoomer · appuyer pour fermer</string>
+    <string name="camera_label">Caméra à la sonnerie</string>
+    <string name="camera_none">Aucune</string>
+    <string name="camera_loading">Recherche des caméras…</string>
+    <string name="camera_none_found">Aucune caméra trouvée sur le serveur</string>
+    <string name="camera_go2rtc">%1$s  (go2rtc)</string>
+    <string name="hint_go2rtc">Adresse go2rtc, ex. http://192.168.1.10:1984</string>
+    <string name="hint_doorbell_camera_seconds">Durée d\'affichage (s)</string>
+    <string name="doorbell_test">Tester la sonnerie complète (carillon + caméra)</string>
+    <string name="assistant_enabled">Assistant vocal (nécessite le micro)</string>
+    <string name="hint_brightness">Luminosité écran (5 à 100 %)</string>
+    <string name="wake_proximity">Réveiller l\'écran quand quelqu\'un s\'approche</string>
+
+    <string name="use_tls">Utiliser HTTPS / WSS</string>
+    <string name="publish_sensors">Publier les capteurs du panneau vers Home Assistant</string>
+    <string name="connect">Se connecter</string>
+    <string name="choose_entities">Choisir les entités à afficher…</string>
+    <string name="need_host_token">L\'adresse et le jeton sont obligatoires</string>
+
+    <string name="setup_help">Le jeton se crée dans Home Assistant : ton profil, onglet Sécurité, « Jetons d\'accès longue durée ».</string>
+
+    <string name="status_connecting">Connexion…</string>
+    <string name="status_connected">Connecté</string>
+    <string name="status_disconnected">Déconnecté : %1$s</string>
+    <string name="knob_hint">Bouton : tourner = régler · appuyer = allumer/éteindre</string>
+    <string name="settings">Réglages</string>
+    <string name="entities">Entités</string>
+    <string name="no_entities">Aucune entité à afficher. Vérifie la sélection dans les réglages.</string>
+
+    <string name="picker_title">Entités à afficher</string>
+    <string name="picker_search">Rechercher par nom ou identifiant…</string>
+    <string name="picker_loading">Récupération des entités…</string>
+    <string name="picker_error">Échec : %1$s</string>
+    <string name="picker_count">%1$d sélectionnée(s) sur %2$d</string>
+    <string name="picker_save">Valider</string>
+    <string name="picker_cancel">Annuler</string>
+    <string name="picker_clear">Tout décocher</string>
+    <string name="picker_saved">%1$d entité(s) retenue(s)</string>
+    <string name="picker_all_areas">Toutes les pièces</string>
+    <string name="picker_no_area">Sans pièce</string>
+    <string name="picker_select_shown">Cocher la liste</string>
+    <string name="picker_no_areas_found">Aucune pièce définie dans Home Assistant</string>
+    <string name="picker_saved_auto">Aucune sélection : découverte automatique réactivée</string>
+</resources>

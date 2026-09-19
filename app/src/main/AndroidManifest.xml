@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Sans le verrou multicast, Android filtre les recherches SSDP et le panneau
+         reste invisible pour Home Assistant. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- Assistant vocal. Le micro ne s'ouvre que sur action explicite, jamais en
+         continu, et le mode privé le coupe entièrement. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.HaPanel">
+
+        <activity
+            android:name=".SetupActivity"
+            android:exported="true"
+            android:label="@string/setup_title">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <!--
+            stateHidden : avec plus d'un millier d'entités, la liste doit être visible
+            d'emblée. Le clavier ne s'ouvre que si l'on touche le champ de recherche.
+        -->
+        <activity
+            android:name=".EntityPickerActivity"
+            android:exported="false"
+            android:label="@string/picker_title"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateHidden|adjustResize"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
+        <!--
+            Service vide : il n'existe que pour obtenir l'accès aux sessions média,
+            qu'Android réserve aux écouteurs de notifications. Voir MediaAccessService.
+        -->
+        <service
+            android:name=".MediaAccessService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!--
+            Récepteur DLNA : rend le panneau visible comme media_player dans Home
+            Assistant. Service de premier plan, la lecture devant survivre au passage
+            du tableau de bord en arrière-plan.
+        -->
+        <service
+            android:name=".dlna.DlnaRendererService"
+            android:exported="false" />
+
+        <!-- Relance le tableau de bord après une coupure de courant. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>
