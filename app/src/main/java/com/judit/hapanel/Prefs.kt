@@ -259,10 +259,15 @@ class Prefs(context: Context) {
         const val KEY_UPDATE_AUTO = "update_auto"
 
         /**
-         * Le dépôt public du projet. C'est la source par défaut : qui installe
-         * l'application depuis ce dépôt veut en recevoir les mises à jour.
+         * Le dépôt du projet. C'est la source par défaut : qui installe l'application
+         * depuis ce dépôt veut en recevoir les mises à jour.
+         *
+         * L'API des publications GitHub n'est ouverte que sur un **dépôt public**. Tant
+         * que le dépôt reste privé, la vérification répond 404 : il faut alors pointer
+         * cette source sur un fichier JSON servi ailleurs, par exemple depuis le dossier
+         * `www/` de Home Assistant. Voir [Updater].
          */
-        const val DEFAULT_UPDATE_SOURCE = "judit/ha-panel"
+        const val DEFAULT_UPDATE_SOURCE = "Juditech3D/homeassistant-bgm-panel"
 
         const val KEY_FRIGATE = "frigate_url"
 
