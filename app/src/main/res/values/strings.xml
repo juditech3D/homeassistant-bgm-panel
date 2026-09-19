@@ -108,6 +108,8 @@
     <!-- Vue caméras -->
     <string name="cameras_title">Caméras</string>
     <string name="cameras_none">Aucune caméra trouvée. Renseigne l\'adresse go2rtc dans les réglages, ou vérifie que ton serveur expose des entités caméra.</string>
+    <string name="cameras_choose">Choisir les caméras à afficher</string>
+    <string name="cameras_all">Toutes</string>
     <string name="cameras_loading">Recherche des caméras…</string>
 
     <string name="greeting_morning">Bonjour</string>

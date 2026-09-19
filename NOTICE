@@ -5,6 +5,15 @@ Distribue sous licence MIT (voir LICENSE).
 Ce produit embarque des travaux tiers :
 
 -------------------------------------------------------------------------------
+Image de fond du tableau de bord
+app/src/main/res/drawable-nodpi/dashboard_photo.jpg
+
+Photographie de Codioful (anciennement Gradienta), publiee sur Pexels :
+  https://www.pexels.com/fr-fr/photo/art-bleu-colore-vert-6985042/
+
+Licence Pexels : utilisation libre, y compris commerciale, sans obligation
+d'attribution. Le credit est donne ici par courtoisie envers l'auteur.
+-------------------------------------------------------------------------------
 Material Design Icons (paquet @mdi/font)
 https://pictogrammers.com/library/mdi/
 

@@ -1,41 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Fond du tableau de bord : un bleu très sombre, réchauffé par deux lueurs diffuses
-    dans les angles. Elles donnent de la profondeur sans rien coûter — ce sont des
-    dégradés dessinés, pas une image — et font ressortir les cartes, qui sont
-    légèrement translucides.
+    Fond du tableau de bord : une photographie de dégradé, voilée de noir.
+
+    L'image est très saturée ; telle quelle, elle rendrait le texte illisible et les
+    cartes invisibles. Le voile la ramène à ce qu'on attend d'un fond — une présence
+    colorée en arrière-plan, pas un sujet. Les cartes étant légèrement translucides,
+    les teintes transparaissent au travers.
+
+    En drawable-nodpi : c'est une toile de fond plein écran, la mise à l'échelle par
+    densité n'aurait aucun sens et gonflerait la mémoire.
+
+    Photo de Codioful (Gradienta), Pexels — licence libre, voir NOTICE.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/background" />
-        </shape>
+        <bitmap
+            android:src="@drawable/dashboard_photo"
+            android:gravity="fill" />
     </item>
 
-    <!-- Lueur froide, en haut à droite. -->
     <item>
         <shape android:shape="rectangle">
-            <gradient
-                android:type="radial"
-                android:centerX="0.92"
-                android:centerY="0.04"
-                android:gradientRadius="75%p"
-                android:startColor="#3C1E6FD9"
-                android:endColor="#001E6FD9" />
-        </shape>
-    </item>
-
-    <!-- Lueur chaude, en bas à droite : elle équilibre la première. -->
-    <item>
-        <shape android:shape="rectangle">
-            <gradient
-                android:type="radial"
-                android:centerX="1.02"
-                android:centerY="0.92"
-                android:gradientRadius="55%p"
-                android:startColor="#2EE0603A"
-                android:endColor="#00E0603A" />
+            <solid android:color="#B3060810" />
         </shape>
     </item>
 

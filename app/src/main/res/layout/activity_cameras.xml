@@ -36,6 +36,12 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/cameras_choose"
+                style="@style/HeaderIcon"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="@string/cameras_choose" />
+
+            <TextView
                 android:id="@+id/cameras_close"
                 style="@style/HeaderIcon"
                 android:contentDescription="@string/back" />

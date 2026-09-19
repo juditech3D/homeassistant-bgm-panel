@@ -65,6 +65,14 @@
             android:windowSoftInputMode="stateHidden|adjustResize"
             android:configChanges="orientation|keyboardHidden|screenSize" />
 
+        <!-- Vue cameras : grille de vignettes, plein ecran a l'appui. -->
+        <activity
+            android:name=".CamerasActivity"
+            android:exported="false"
+            android:label="@string/cameras_title"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
         <activity
             android:name=".EntityPickerActivity"
             android:exported="false"

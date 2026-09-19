@@ -112,6 +112,14 @@ class Prefs(context: Context) {
         get() = sp.getInt(KEY_ZIGBEE_PORT, DEFAULT_ZIGBEE_PORT)
         set(v) = sp.edit().putInt(KEY_ZIGBEE_PORT, v.coerceIn(1024, 65535)).apply()
 
+    /**
+     * Caméras retenues dans la vue caméras, séparées par des virgules.
+     * Vide = toutes celles que le panneau découvre.
+     */
+    var camerasShown: String
+        get() = sp.getString(KEY_CAMERAS_SHOWN, "") ?: ""
+        set(v) = sp.edit().putString(KEY_CAMERAS_SHOWN, v.trim()).apply()
+
     /** Colonne de lecture multiroom, à droite du tableau de bord. */
     var mediaCardEnabled: Boolean
         get() = sp.getBoolean(KEY_MEDIA_CARD, true)
@@ -282,6 +290,7 @@ class Prefs(context: Context) {
         const val KEY_UPDATE_SOURCE = "update_source"
         const val KEY_UPDATE_AUTO = "update_auto"
         const val KEY_MEDIA_CARD = "feature_media_card"
+        const val KEY_CAMERAS_SHOWN = "cameras_shown"
         const val KEY_ZIGBEE = "feature_zigbee"
         const val KEY_ZIGBEE_DEVICE = "zigbee_device"
         const val KEY_ZIGBEE_PORT = "zigbee_port"

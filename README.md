@@ -37,6 +37,9 @@ en vues Android classiques.
 - **Wi-Fi et Bluetooth** réglables depuis le panneau : recherche des réseaux, saisie de la
   clé avec possibilité de l'afficher, et audio Bluetooth **dans les deux sens** — recevoir
   la musique d'un téléphone, ou diffuser vers une enceinte.
+- **Vue caméras** : une grille de vignettes rafraîchies en continu, l'appui ouvre le
+  plein écran avec zoom et déplacement. Chaque carte prend la forme de sa caméra — une
+  caméra à deux optiques, qui filme en portrait, obtient une carte portrait.
 - **Carte musique multiroom** : une colonne dédiée à droite — pochette, titre, commandes
   de lecture, volume, et des pastilles pour passer d'une pièce à l'autre.
 - **Bandeau d'accueil** : salutation selon l'heure, horloge, date et météo reprise de

@@ -70,6 +70,12 @@
                 android:textSize="13sp" />
 
             <TextView
+                android:id="@+id/cameras_button"
+                style="@style/HeaderIcon"
+                android:contentDescription="@string/cameras_title"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/entities_button"
                 style="@style/HeaderIcon"
                 android:contentDescription="@string/entities" />

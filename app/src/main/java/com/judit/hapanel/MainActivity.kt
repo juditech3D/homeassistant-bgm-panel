@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var mediaCard: MediaCardView
     private lateinit var greeting: TextView
     private lateinit var weatherCard: WeatherCardView
+    private lateinit var camerasButton: TextView
     private lateinit var empty: TextView
     private lateinit var tiles: RecyclerView
 
@@ -141,6 +142,16 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         findViewById<TextView>(R.id.settings_button).apply {
             typeface = MdiIcons.typeface()
             text = MdiIcons.glyph("cog-outline")
+        }
+        // La vue cameras n'apparait que si le panneau en connait : une icone qui ouvre
+        // une page vide vaut moins qu'une icone absente.
+        camerasButton = findViewById(R.id.cameras_button)
+        camerasButton.apply {
+            typeface = MdiIcons.typeface()
+            text = MdiIcons.glyph("cctv")
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, CamerasActivity::class.java))
+            }
         }
 
         findViewById<TextView>(R.id.entities_button).setOnClickListener {
@@ -665,6 +676,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         val shown = selectEntities(allEntities)
         adapter.submit(shown)
         refreshWeather()
+        refreshCamerasButton()
         refreshMediaCard()
         layoutTiles(shown.size)
         empty.visibility = if (shown.isEmpty()) View.VISIBLE else View.GONE
@@ -701,6 +713,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun refreshWeather() {
         if (!this::weatherCard.isInitialized) return
         weatherCard.visibility = if (weatherCard.bind(allEntities)) View.VISIBLE else View.GONE
+    }
+
+    /** Montre l'acces aux cameras des que le serveur ou go2rtc en expose une. */
+    private fun refreshCamerasButton() {
+        if (!this::camerasButton.isInitialized) return
+        val disponible = prefs.go2rtcUrl.isNotBlank() ||
+            allEntities.any { it.domain == "camera" }
+        camerasButton.visibility = if (disponible) View.VISIBLE else View.GONE
     }
 
     private fun refreshMediaCard() {
