@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Intertitre de pièce dans la grille. Occupe toute la largeur : c'est le rôle du
+    spanSizeLookup posé par le tableau de bord.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/header_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="4dp"
+    android:maxLines="1"
+    android:ellipsize="end"
+    android:letterSpacing="0.08"
+    android:textColor="@color/text_secondary"
+    android:textSize="12sp" />

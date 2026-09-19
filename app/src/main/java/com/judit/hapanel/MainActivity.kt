@@ -48,6 +48,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var greeting: TextView
     private lateinit var weatherCard: WeatherCardView
     private lateinit var camerasButton: TextView
+
+    /** Les pieces ne sont interrogees qu'une fois : elles ne changent pratiquement pas. */
+    private var areasLoaded = false
     private lateinit var empty: TextView
     private lateinit var tiles: RecyclerView
 
@@ -129,6 +132,11 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         adapter = TileAdapter { position -> onTileTapped(position) }
         gridLayout = GridLayoutManager(this, TILE_COLUMNS)
+        // Un intertitre de piece occupe toute la largeur ; une tuile, une colonne.
+        gridLayout.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int =
+                if (adapter.isHeader(position)) gridLayout.spanCount else 1
+        }
         tiles.layoutManager = gridLayout
         tiles.adapter = adapter
 
@@ -300,7 +308,13 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             val maximumTenable = (largeur / (150 * densite)).toInt().coerceAtLeast(1)
             val colonnes = minOf(souhaitees, maximumTenable, TILE_COLUMNS).coerceAtLeast(1)
 
-            val lignes = (nombre + colonnes - 1) / colonnes
+            // Les intertitres occupent une ligne chacun : la grille en tient compte.
+            val lignesTitres = if (adapter.itemCount > adapter.tileCount) {
+                adapter.itemCount - adapter.tileCount
+            } else {
+                0
+            }
+            val lignes = (nombre + colonnes - 1) / colonnes + lignesTitres
             // Au-dela de ce que l'ecran peut montrer, la grille defile : on garde alors
             // une hauteur confortable plutot que d'ecraser les tuiles.
             val lignesVisibles = lignes.coerceAtMost(MAX_TILE_ROWS)
@@ -678,6 +692,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         refreshWeather()
         refreshCamerasButton()
         refreshMediaCard()
+        loadAreas()
         layoutTiles(shown.size)
         empty.visibility = if (shown.isEmpty()) View.VISIBLE else View.GONE
         refreshKnobNow()
@@ -710,6 +725,34 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * Affiche la carte meteo, alimentee par la premiere entite `weather` du serveur.
      * Masquee s'il n'y en a aucune : la musique recupere alors toute la hauteur.
      */
+    /**
+     * Recupere la piece de chaque entite, pour regrouper les tuiles.
+     *
+     * Une seule fois par session : la carte des pieces ne bouge pratiquement jamais, et
+     * l'interroger passe par un modele evalue sur toutes les entites du serveur — ce
+     * n'est pas gratuit. Silencieux en cas d'echec : sans pieces, la grille reste une
+     * simple suite de tuiles, ce qui reste parfaitement utilisable.
+     */
+    private fun loadAreas() {
+        if (areasLoaded || !prefs.isConfigured) return
+        areasLoaded = true
+        kotlin.concurrent.thread(isDaemon = true) {
+            val pieces = HaClient.fetchAreas(prefs)
+            android.util.Log.i(
+                TAG_AREAS,
+                "${pieces.size} entites rattachees a " +
+                    "${pieces.values.distinct().size} pieces. Une entite absente de cette " +
+                    "liste n'a pas de piece dans Home Assistant : elle ira dans « Autres »."
+            )
+            if (pieces.isEmpty()) return@thread
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                adapter.areas = pieces
+                applySelection()
+            }
+        }
+    }
+
     private fun refreshWeather() {
         if (!this::weatherCard.isInitialized) return
         weatherCard.visibility = if (weatherCard.bind(allEntities)) View.VISIBLE else View.GONE
@@ -729,7 +772,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         val cible = if (visible) View.VISIBLE else View.GONE
         if (mediaCard.visibility != cible) {
             mediaCard.visibility = cible
-            layoutTiles(adapter.itemCount)
+            layoutTiles(adapter.tileCount)
         }
     }
 
@@ -780,6 +823,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
          * requête réseau supplémentaire au même instant se voit à l'affichage.
          */
         const val UPDATE_CHECK_DELAY_MS = 8000L
+
+        const val TAG_AREAS = "HaPanelAreas"
 
         /** Au-dela, la grille defile plutot que d'ecraser les tuiles. */
         const val MAX_TILE_ROWS = 3

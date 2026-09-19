@@ -37,6 +37,9 @@ en vues Android classiques.
 - **Wi-Fi et Bluetooth** réglables depuis le panneau : recherche des réseaux, saisie de la
   clé avec possibilité de l'afficher, et audio Bluetooth **dans les deux sens** — recevoir
   la musique d'un téléphone, ou diffuser vers une enceinte.
+- **Regroupement par pièce** : les tuiles sont rangées sous un intertitre par pièce,
+  d'après les zones déclarées dans Home Assistant. Les entités sans pièce vont dans
+  « Autres », et la grille reste plate tant qu'il n'y a rien à distinguer.
 - **Vue caméras** : une grille de vignettes rafraîchies en continu, l'appui ouvre le
   plein écran avec zoom et déplacement. Chaque carte prend la forme de sa caméra — une
   caméra à deux optiques, qui filme en portrait, obtient une carte portrait.

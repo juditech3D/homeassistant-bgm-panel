@@ -7,12 +7,34 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-/** Grille de tuiles du tableau de bord principal (écran 1024x600). */
+/**
+ * Grille de tuiles du tableau de bord principal (écran 1024x600).
+ *
+ * Les entités sont regroupées par pièce quand Home Assistant en déclare : chaque groupe
+ * est précédé d'un intertitre qui occupe toute la largeur. Sans pièce connue, la grille
+ * reste une simple suite de tuiles — un intertitre unique et creux n'apporterait rien.
+ *
+ * Les intertitres partagent la numérotation des tuiles, ce dont il faut tenir compte
+ * partout : la sélection au bouton rotatif les enjambe, et `entityAt` rend null pour eux.
+ */
 class TileAdapter(
     private val onTap: (position: Int) -> Unit
-) : RecyclerView.Adapter<TileAdapter.TileHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private val items = ArrayList<Entity>()
+    /** Une ligne de la grille : soit un intertitre de pièce, soit une entité. */
+    private sealed class Row {
+        class Header(val title: String) : Row()
+        class Cell(var entity: Entity) : Row()
+    }
+
+    private val rows = ArrayList<Row>()
+
+    /**
+     * Pièce de chaque entité, telle que Home Assistant la déclare. Renseignée en tâche
+     * de fond par le tableau de bord ; vide, le regroupement ne s'applique pas.
+     */
+    var areas: Map<String, String> = emptyMap()
+
     var selected: Int = -1
         private set
 
@@ -28,57 +50,111 @@ class TileAdapter(
             notifyDataSetChanged()
         }
 
+    /** Nombre de tuiles, intertitres exclus. Sert au calcul de la disposition. */
+    val tileCount: Int get() = rows.count { it is Row.Cell }
+
+    fun isHeader(position: Int): Boolean = rows.getOrNull(position) is Row.Header
+
     fun submit(newItems: List<Entity>) {
-        items.clear()
-        items.addAll(newItems)
-        if (selected >= items.size) selected = items.size - 1
-        if (selected < 0 && items.isNotEmpty()) selected = 0
+        val ancienne = selectedEntity()?.entityId
+        rows.clear()
+
+        // Ordre des pièces : alphabétique, et celles sans pièce à la fin.
+        val parPiece = newItems.groupBy { areas[it.entityId].orEmpty() }
+        val pieces = parPiece.keys.filter { it.isNotEmpty() }.sorted()
+
+        // Il faut au moins une pièce nommée, et au moins deux groupes à distinguer —
+        // fût-ce une pièce et le reste. Un intertitre unique coiffant toute la grille
+        // ne servirait à rien et mangerait une ligne.
+        if (pieces.isEmpty() || parPiece.keys.size < 2) {
+            newItems.forEach { rows.add(Row.Cell(it)) }
+        } else {
+            pieces.forEach { piece ->
+                rows.add(Row.Header(piece.uppercase()))
+                parPiece[piece].orEmpty().forEach { rows.add(Row.Cell(it)) }
+            }
+            parPiece[""].orEmpty().takeIf { it.isNotEmpty() }?.let { sansPiece ->
+                rows.add(Row.Header(AUTRES))
+                sansPiece.forEach { rows.add(Row.Cell(it)) }
+            }
+        }
+
+        // La sélection suit l'entité, pas son rang : un regroupement change les rangs.
+        selected = ancienne?.let { indexOfEntity(it) } ?: -1
+        if (selected < 0) selected = firstCell()
         notifyDataSetChanged()
     }
 
     fun update(entity: Entity): Boolean {
-        val idx = items.indexOfFirst { it.entityId == entity.entityId }
+        val idx = indexOfEntity(entity.entityId)
         if (idx < 0) return false
-        items[idx] = entity
+        (rows[idx] as Row.Cell).entity = entity
         notifyItemChanged(idx)
         return true
     }
 
     fun select(position: Int) {
-        if (items.isEmpty()) return
-        val clamped = position.coerceIn(0, items.size - 1)
-        if (clamped == selected) return
+        if (rows.isEmpty()) return
+        // Un intertitre n'est pas sélectionnable : on ignore la demande plutôt que de
+        // glisser vers un voisin, ce qui surprendrait au doigt.
+        if (rows.getOrNull(position) !is Row.Cell) return
+        if (position == selected) return
         val previous = selected
-        selected = clamped
+        selected = position
         if (previous >= 0) notifyItemChanged(previous)
         notifyItemChanged(selected)
     }
 
+    /**
+     * Déplace la sélection d'une tuile, en enjambant les intertitres et en bouclant aux
+     * extrémités. Le bouton rotatif tourne sans fin : la sélection doit faire de même.
+     */
     fun moveSelection(delta: Int) {
-        if (items.isEmpty()) return
-        val next = (selected + delta).let {
-            when {
-                it < 0 -> items.size - 1
-                it >= items.size -> 0
-                else -> it
-            }
+        if (delta == 0 || rows.none { it is Row.Cell }) return
+        val pas = if (delta > 0) 1 else -1
+        var position = if (selected >= 0) selected else firstCell()
+
+        repeat(kotlin.math.abs(delta)) {
+            do {
+                position += pas
+                if (position < 0) position = rows.size - 1
+                if (position >= rows.size) position = 0
+            } while (rows[position] !is Row.Cell)
         }
-        select(next)
+        select(position)
     }
 
-    fun selectedEntity(): Entity? = items.getOrNull(selected)
+    fun selectedEntity(): Entity? = (rows.getOrNull(selected) as? Row.Cell)?.entity
 
-    fun entityAt(position: Int): Entity? = items.getOrNull(position)
+    fun entityAt(position: Int): Entity? = (rows.getOrNull(position) as? Row.Cell)?.entity
 
-    override fun getItemCount(): Int = items.size
+    private fun indexOfEntity(entityId: String): Int =
+        rows.indexOfFirst { it is Row.Cell && it.entity.entityId == entityId }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TileHolder {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_tile, parent, false)
-        return TileHolder(v)
+    private fun firstCell(): Int = rows.indexOfFirst { it is Row.Cell }
+
+    override fun getItemCount(): Int = rows.size
+
+    override fun getItemViewType(position: Int): Int =
+        if (rows[position] is Row.Header) TYPE_HEADER else TYPE_TILE
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        return if (viewType == TYPE_HEADER) {
+            HeaderHolder(inflater.inflate(R.layout.item_tile_header, parent, false))
+        } else {
+            TileHolder(inflater.inflate(R.layout.item_tile, parent, false))
+        }
     }
 
-    override fun onBindViewHolder(holder: TileHolder, position: Int) {
-        val e = items[position]
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val row = rows[position]) {
+            is Row.Header -> (holder as HeaderHolder).title.text = row.title
+            is Row.Cell -> bindTile(holder as TileHolder, row.entity, position)
+        }
+    }
+
+    private fun bindTile(holder: TileHolder, e: Entity, position: Int) {
         holder.name.text = e.friendlyName
         holder.value.text = e.tileValue()
 
@@ -127,7 +203,17 @@ class TileAdapter(
         val watermark: TextView = view.findViewById(R.id.tile_watermark)
     }
 
+    class HeaderHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val title: TextView = view.findViewById(R.id.header_title)
+    }
+
     private companion object {
+        const val TYPE_TILE = 0
+        const val TYPE_HEADER = 1
+
+        /** Intertitre des entités auxquelles Home Assistant n'attribue aucune pièce. */
+        const val AUTRES = "AUTRES"
+
         /**
          * Opacites du filigrane. Assez marque pour se deviner, assez discret pour ne
          * jamais disputer la lisibilite a la valeur affichee par-dessus.
