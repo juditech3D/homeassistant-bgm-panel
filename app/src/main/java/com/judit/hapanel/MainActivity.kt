@@ -143,12 +143,22 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         tiles.adapter = adapter
 
         // Accès direct au sélecteur, pour ajouter ou retirer des entités sans repasser
-        // par tout l'écran de configuration.
-        findViewById<Button>(R.id.entities_button).setOnClickListener {
+        // par tout l'écran de configuration. Les deux commandes du bandeau sont des
+        // glyphes de la police MDI, pas des boutons : un libellé y serait du bruit.
+        findViewById<TextView>(R.id.entities_button).apply {
+            typeface = MdiIcons.typeface()
+            text = MdiIcons.glyph("view-grid-outline")
+        }
+        findViewById<TextView>(R.id.settings_button).apply {
+            typeface = MdiIcons.typeface()
+            text = MdiIcons.glyph("cog-outline")
+        }
+
+        findViewById<TextView>(R.id.entities_button).setOnClickListener {
             startActivity(Intent(this, EntityPickerActivity::class.java))
         }
 
-        findViewById<Button>(R.id.settings_button).setOnClickListener {
+        findViewById<TextView>(R.id.settings_button).setOnClickListener {
             startActivity(
                 Intent(this, SetupActivity::class.java)
                     .putExtra(SetupActivity.EXTRA_FORCE, true)

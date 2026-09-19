@@ -134,22 +134,16 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
 
-            <Button
+            <TextView
                 android:id="@+id/entities_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="0dp"
-                android:text="@string/entities"
-                android:textSize="12sp" />
+                style="@style/HeaderIcon"
+                android:contentDescription="@string/entities" />
 
-            <Button
+            <TextView
                 android:id="@+id/settings_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:minWidth="0dp"
-                android:text="@string/settings"
-                android:textSize="12sp" />
+                style="@style/HeaderIcon"
+                android:layout_marginStart="2dp"
+                android:contentDescription="@string/settings" />
 
         </LinearLayout>
 

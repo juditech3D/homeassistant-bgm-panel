@@ -29,4 +29,19 @@
         <item name="android:textSize">28sp</item>
         <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
     </style>
+
+    <!--
+        Icônes du bandeau. Deux boutons à libellé alourdissaient un bandeau qui vise la
+        sobriété ; l'icône suffit, à condition de garder une cible tactile généreuse —
+        d'où le remplissage, bien plus large que le glyphe lui-même.
+    -->
+    <style name="HeaderIcon">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:background">?android:attr/selectableItemBackgroundBorderless</item>
+    </style>
 </resources>
