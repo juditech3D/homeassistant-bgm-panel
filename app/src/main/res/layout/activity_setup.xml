@@ -48,6 +48,33 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <!--
+            La langue, tout en haut et hors des sections repliables : c'est le reglage
+            qu'on cherche quand l'ecran est dans une langue qu'on ne lit pas, et il
+            faut pouvoir le trouver sans avoir a comprendre les intitules.
+        -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/language_label"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <Spinner
+                android:id="@+id/language_choice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
+
         <!-- ========================= FONCTIONNALITÉS ========================= -->
 
         <include
@@ -111,24 +138,17 @@
                 android:textColor="@color/text_primary" />
         </LinearLayout>
 
-        <!-- ====================== RESEAU ET MISES A JOUR ====================== -->
+        <!-- ========================= ECRAN D'ACCUEIL ========================= -->
 
         <include
-            android:id="@+id/header_network"
+            android:id="@+id/header_launcher"
             layout="@layout/view_settings_section" />
 
         <LinearLayout
-            android:id="@+id/section_network"
+            android:id="@+id/section_launcher"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
-            <Button
-                android:id="@+id/open_network"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/open_network" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -163,6 +183,27 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <!-- ====================== RESEAU ET MISES A JOUR ====================== -->
+
+        <include
+            android:id="@+id/header_network"
+            layout="@layout/view_settings_section" />
+
+        <LinearLayout
+            android:id="@+id/section_network"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/open_network"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/open_network" />
 
             <CheckBox
                 android:id="@+id/wifi_fallback"
@@ -515,6 +556,19 @@
                     android:text="@string/chime_test"
                     android:textSize="12sp" />
             </LinearLayout>
+
+            <!--
+                Tonalite de quelques secondes, sur la sortie musique : elle dit d'ou le son
+                sort vraiment. Utile surtout apres avoir bascule vers une enceinte Bluetooth,
+                ou seule l'oreille distingue le haut-parleur du panneau de l'enceinte.
+            -->
+            <Button
+                android:id="@+id/audio_test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/audio_test"
+                android:textSize="12sp" />
 
             <EditText
                 android:id="@+id/go2rtc_url"

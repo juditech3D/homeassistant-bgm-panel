@@ -243,7 +243,10 @@ class HaClient(private val prefs: Prefs) {
                 "auth_invalid" -> {
                     authenticated = false
                     closedByUs = true
-                    main.post { listener?.onDisconnected("jeton refusé par Home Assistant") }
+                    main.post { listener?.onDisconnected(
+                            LocaleHelper.wrap(prefs.appContext)
+                                .getString(R.string.ha_token_refused)
+                        ) }
                     webSocket.close(1000, "auth_invalid")
                 }
 

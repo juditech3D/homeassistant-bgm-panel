@@ -68,12 +68,33 @@ class NetworkActivity : AppCompatActivity() {
     private var wifiNetworks: List<WifiController.Network> = emptyList()
     private var btDevices: List<BluetoothController.Device> = emptyList()
 
+    private val audio by lazy { AudioController(this) }
+
+    /**
+     * Etat de liaison au rafraichissement precedent, pour ne jouer la confirmation qu'au
+     * moment ou elle s'etablit -- et non a chaque passage sur l'ecran.
+     */
+    private var btWasConnected = false
+
+    /**
+     * Vrai une fois le premier releve fait. Sans lui, ouvrir l'ecran alors qu'une enceinte
+     * est deja reliee passerait pour une connexion qui vient de s'etablir, et la melodie
+     * repartirait a chaque visite.
+     */
+    private var btStateKnown = false
+
     private val modeValues = listOf(BluetoothController.Mode.ENTREE, BluetoothController.Mode.SORTIE)
 
     private val mode: BluetoothController.Mode
         get() = modeValues.getOrElse(btModeSpinner.selectedItemPosition) {
             BluetoothController.Mode.ENTREE
         }
+
+    // La langue choisie dans les reglages s'impose avant que la moindre ressource soit
+    // lue : posee plus tard, elle laisserait les textes deja resolus dans l'ancienne.
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(LocaleHelper.wrap(base))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -312,6 +333,11 @@ class NetworkActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<Button>(R.id.bt_test_audio).setOnClickListener {
+            Toast.makeText(this, R.string.bt_test_audio_playing, Toast.LENGTH_SHORT).show()
+            audio.playTestTone()
+        }
+
         btList.adapter = BluetoothAdapter()
         btList.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             val device = btDevices.getOrNull(position) ?: return@OnItemClickListener
@@ -355,6 +381,13 @@ class NetworkActivity : AppCompatActivity() {
             else R.string.bt_scan
         )
         btStatus.text = bt.summary(mode)
+
+        // Melodie de confirmation au moment ou la liaison s'etablit : sur une enceinte,
+        // seule l'oreille prouve que le son sort vraiment, et d'ou.
+        val relie = bt.isEnabled && bt.hasConnection(mode)
+        if (relie && !btWasConnected && btStateKnown) audio.playTestTone()
+        btWasConnected = relie
+        btStateKnown = true
 
         btDevices = if (bt.isEnabled) bt.devices(mode, discovered.values) else emptyList()
         (btList.adapter as BaseAdapter).notifyDataSetChanged()

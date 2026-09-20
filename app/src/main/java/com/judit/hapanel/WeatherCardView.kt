@@ -69,14 +69,14 @@ class WeatherCardView @JvmOverloads constructor(
 
         val degres = meteo.attributes.optDouble("temperature", Double.NaN)
         temperature.text = if (degres.isNaN()) "—" else String.format("%.0f°", degres)
-        condition.text = conditionLabel(meteo.state)
+        condition.text = conditionLabel(context, meteo.state)
         icon.text = MdiIcons.glyph(glyphFor(meteo.state))
 
         // Humidité et vent quand le serveur les fournit. Beaucoup d'intégrations n'en
         // donnent qu'une partie : on n'affiche que ce qui existe réellement.
         val morceaux = ArrayList<String>(2)
         meteo.attributes.optDouble("humidity", Double.NaN).let {
-            if (!it.isNaN()) morceaux.add(String.format("Humidité %.0f %%", it))
+            if (!it.isNaN()) morceaux.add(context.getString(R.string.sensor_humidity, it))
         }
         meteo.attributes.optDouble("wind_speed", Double.NaN).let {
             if (!it.isNaN()) {
@@ -113,23 +113,30 @@ class WeatherCardView @JvmOverloads constructor(
             else -> "weather-cloudy"
         }
 
-        /** Libellé français de la condition météorologique. */
-        fun conditionLabel(condition: String): String = when (condition) {
-            "sunny" -> "Ensoleillé"
-            "clear-night" -> "Ciel dégagé"
-            "partlycloudy" -> "Peu nuageux"
-            "cloudy" -> "Nuageux"
-            "fog" -> "Brouillard"
-            "hail" -> "Grêle"
-            "lightning" -> "Orageux"
-            "lightning-rainy" -> "Orages et pluie"
-            "pouring" -> "Fortes pluies"
-            "rainy" -> "Pluvieux"
-            "snowy" -> "Neigeux"
-            "snowy-rainy" -> "Pluie et neige"
-            "windy", "windy-variant" -> "Venteux"
-            "exceptional" -> "Conditions extrêmes"
-            else -> condition.replaceFirstChar { it.uppercase() }
-        }
+        /**
+         * Le libellé de la condition, dans la langue de l'écran.
+         *
+         * Home Assistant n'envoie qu'un mot-clé anglais figé -- `partlycloudy`,
+         * `snowy-rainy` -- indépendant de la langue du serveur : c'est donc au
+         * panneau de le traduire, et non au serveur.
+         */
+        fun conditionLabel(context: android.content.Context, condition: String): String =
+            when (condition) {
+                "sunny" -> context.getString(R.string.weather_sunny)
+                "clear-night" -> context.getString(R.string.weather_clear_night)
+                "partlycloudy" -> context.getString(R.string.weather_partlycloudy)
+                "cloudy" -> context.getString(R.string.weather_cloudy)
+                "fog" -> context.getString(R.string.weather_fog)
+                "hail" -> context.getString(R.string.weather_hail)
+                "lightning" -> context.getString(R.string.weather_lightning)
+                "lightning-rainy" -> context.getString(R.string.weather_lightning_rainy)
+                "pouring" -> context.getString(R.string.weather_pouring)
+                "rainy" -> context.getString(R.string.weather_rainy)
+                "snowy" -> context.getString(R.string.weather_snowy)
+                "snowy-rainy" -> context.getString(R.string.weather_snowy_rainy)
+                "windy", "windy-variant" -> context.getString(R.string.weather_windy)
+                "exceptional" -> context.getString(R.string.weather_exceptional)
+                else -> condition.replaceFirstChar { it.uppercase() }
+            }
     }
 }

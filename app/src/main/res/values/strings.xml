@@ -15,6 +15,9 @@
     <string name="hint_timeout">Extinction totale après (s, 0 = jamais)</string>
     <string name="chime_label">Carillon</string>
     <string name="chime_test">Essayer</string>
+    <string name="audio_test">Test audio (tonalité)</string>
+    <string name="language_label">Langue</string>
+    <string name="language_system">Langue du panneau</string>
     <string name="chime_builtin">Carillon intégré</string>
     <string name="chime_on_doorbell">Jouer le carillon quand on sonne (borne DB)</string>
     <string name="back">Retour</string>
@@ -98,6 +101,8 @@
     <string name="bt_mode_out">Sortie — diffuser vers une enceinte ou un casque</string>
     <string name="bt_mode_in_help">Le panneau se rend visible ; c\'est le téléphone qui vient s\'y connecter. Le son sort sur le haut-parleur et les bornes d\'enceintes.</string>
     <string name="bt_mode_out_help">Le panneau cherche les enceintes et casques alentour et s\'y connecte. Son propre haut-parleur se tait alors.</string>
+    <string name="bt_test_audio">Test audio</string>
+    <string name="bt_test_audio_playing">Mélodie de test en cours…</string>
     <string name="bt_name">Nom du panneau</string>
     <string name="bt_discoverable">Se rendre visible 5 min</string>
     <string name="bt_discoverable_on">Visible pour les téléphones pendant 5 minutes</string>
@@ -211,4 +216,49 @@
     <string name="picker_select_shown">Cocher la liste</string>
     <string name="picker_no_areas_found">Aucune pièce définie dans Home Assistant</string>
     <string name="picker_saved_auto">Aucune sélection : découverte automatique réactivée</string>
+
+    <!--
+        Textes qui etaient ecrits en dur dans le code. Sortis ici pour qu'ils suivent le
+        changement de langue comme le reste ; les noms publies vers Home Assistant, eux,
+        restent en dur : ils nomment des entites du serveur, que le reglage d'un panneau
+        n'a pas a renommer.
+    -->
+    <string name="assistant_name">Assistant vocal</string>
+    <string name="assistant_unavailable">Indisponible</string>
+    <string name="assistant_listening">J\'écoute</string>
+    <string name="assistant_answering">Réponse</string>
+    <string name="assistant_speak">Parler</string>
+    <string name="mic_on_name">Micro actif</string>
+    <string name="mic_off_name">Mode privé</string>
+    <string name="mic_on_state">ACTIF</string>
+    <string name="mic_off_state">COUPÉ</string>
+    <string name="panel_volume_name">Volume du panneau</string>
+    <string name="sensor_humidity">Humidité %1$.0f %%</string>
+    <string name="sensor_battery">Batterie %1$.0f %%</string>
+    <string name="camera_no_image">aucune image exploitable (%1$d octets) — caméra probablement hors service</string>
+    <string name="dlna_channel">Lecteur réseau</string>
+    <string name="dlna_active">Lecteur réseau actif</string>
+    <string name="ha_token_refused">jeton refusé par Home Assistant</string>
+    <string name="ha_closed">fermé (%1$d)</string>
+    <string name="ha_http_code">réponse %1$d</string>
+    <string name="weather_sunny">Ensoleillé</string>
+    <string name="weather_clear_night">Ciel dégagé</string>
+    <string name="weather_hail">Grêle</string>
+    <string name="weather_exceptional">Conditions extrêmes</string>
+
+    <plurals name="room_lights_on">
+        <item quantity="one">%1$s   ·   %2$d allumée</item>
+        <item quantity="other">%1$s   ·   %2$d allumées</item>
+    </plurals>
+    <string name="section_launcher">Écran d\'accueil et démarrage</string>
+    <string name="weather_partlycloudy">Peu nuageux</string>
+    <string name="weather_cloudy">Nuageux</string>
+    <string name="weather_fog">Brouillard</string>
+    <string name="weather_lightning">Orageux</string>
+    <string name="weather_lightning_rainy">Orages et pluie</string>
+    <string name="weather_pouring">Fortes pluies</string>
+    <string name="weather_rainy">Pluvieux</string>
+    <string name="weather_snowy">Neigeux</string>
+    <string name="weather_snowy_rainy">Pluie et neige</string>
+    <string name="weather_windy">Venteux</string>
 </resources>

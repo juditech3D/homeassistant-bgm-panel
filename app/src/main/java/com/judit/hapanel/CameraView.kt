@@ -332,8 +332,7 @@ class CameraView @JvmOverloads constructor(
                         // mais sans données.
                         Log.w(
                             TAG,
-                            "aucune image exploitable (${bytes?.size ?: 0} octets) — " +
-                                "caméra probablement hors service"
+                            context.getString(R.string.camera_no_image, bytes?.size ?: 0)
                         )
                     }
                     if (failures >= FAILURES_BEFORE_GIVING_UP) postInvalidate()

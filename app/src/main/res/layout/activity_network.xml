@@ -230,6 +230,15 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp" />
 
+            <Button
+                android:id="@+id/bt_test_audio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:minWidth="0dp"
+                android:text="@string/bt_test_audio"
+                android:textSize="12sp" />
+
             <TextView
                 android:id="@+id/bt_status"
                 android:layout_width="match_parent"

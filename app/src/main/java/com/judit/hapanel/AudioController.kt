@@ -11,6 +11,7 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.provider.Settings
 import android.util.Log
+import kotlin.concurrent.thread
 
 /**
  * Pilote l'audio du panneau : volume de l'amplificateur intégré, et commande des
@@ -120,6 +121,63 @@ class AudioController(private val context: Context) {
         } catch (e: Exception) {
             // Le générateur peut être indisponible si la sortie audio est occupée.
             Log.w(TAG, "bip impossible : ${e.message}")
+        }
+    }
+
+    /**
+     * Joue une mélodie de confirmation de quelques secondes.
+     *
+     * Un bip court ne prouve pas grand-chose sur une enceinte Bluetooth : le temps qu'il
+     * sorte, la liaison peut s'être établie ou non, et l'oreille n'a rien à juger. Une
+     * suite de notes tenues laisse le temps d'entendre d'où vient le son, de vérifier le
+     * volume, et de constater qu'il ne hache pas.
+     *
+     * Synthétisée plutôt que jouée depuis un fichier : aucune ressource à embarquer, et
+     * le rendu est le même sur toutes les sorties.
+     */
+    fun playTestTone(onFinished: (() -> Unit)? = null) {
+        thread(isDaemon = true, name = "test-audio") {
+            try {
+                val frequence = 44100
+                // Un arpège majeur ascendant puis la tonique tenue : franc à l'oreille,
+                // et l'on entend tout de suite si la liaison hache.
+                val notes = listOf(
+                    523.25 to 400, 659.25 to 400, 783.99 to 400,
+                    1046.50 to 700, 783.99 to 300, 1046.50 to 1200
+                )
+                val total = notes.sumOf { it.second } * frequence / 1000
+                val echantillons = ShortArray(total)
+
+                var position = 0
+                notes.forEach { (hauteur, duree) ->
+                    val n = duree * frequence / 1000
+                    for (i in 0 until n) {
+                        // Enveloppe en cloche : sans elle, chaque note claque à son début
+                        // et à sa fin, ce qui s'entend comme un défaut de transmission.
+                        val avance = i.toDouble() / n
+                        val enveloppe = kotlin.math.sin(Math.PI * avance)
+                        val valeur = kotlin.math.sin(2 * Math.PI * hauteur * i / frequence)
+                        echantillons[position + i] =
+                            (valeur * enveloppe * Short.MAX_VALUE * 0.55).toInt().toShort()
+                    }
+                    position += n
+                }
+
+                val piste = android.media.AudioTrack(
+                    AudioManager.STREAM_MUSIC, frequence,
+                    android.media.AudioFormat.CHANNEL_OUT_MONO,
+                    android.media.AudioFormat.ENCODING_PCM_16BIT,
+                    echantillons.size * 2,
+                    android.media.AudioTrack.MODE_STATIC
+                )
+                piste.write(echantillons, 0, echantillons.size)
+                piste.play()
+                Thread.sleep(notes.sumOf { it.second }.toLong() + 250)
+                piste.release()
+            } catch (e: Exception) {
+                Log.w(TAG, "test audio impossible : ${e.message}")
+            }
+            onFinished?.invoke()
         }
     }
 

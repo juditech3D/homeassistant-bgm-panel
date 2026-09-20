@@ -7,6 +7,14 @@ class Prefs(context: Context) {
 
     private val sp = context.getSharedPreferences("hapanel", Context.MODE_PRIVATE)
 
+    /**
+     * Un contexte pour les classes qui n'en recoivent pas, comme [HaClient].
+     *
+     * Il porte la langue du systeme, pas celle choisie dans les reglages : passer par
+     * [LocaleHelper.wrap] reste necessaire pour en tirer un texte affiche.
+     */
+    val appContext: Context = context.applicationContext
+
     var host: String
         get() = sp.getString(KEY_HOST, "") ?: ""
         set(v) = sp.edit().putString(KEY_HOST, v.trim()).apply()
@@ -41,6 +49,17 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putInt(KEY_SAVER_DELAY, v.coerceAtLeast(0)).apply()
 
     /** `photos` ou `anime`. */
+    /**
+     * Langue de l'interface : `systeme`, `fr` ou `en`.
+     *
+     * Android 8.1 n'offre pas la liste de langues par application des versions
+     * recentes : le choix se pose donc ici, et [LocaleHelper] l'applique a chaque
+     * ecran. `systeme` suit la langue du panneau, ce qui reste le defaut.
+     */
+    var language: String
+        get() = sp.getString(KEY_LANGUAGE, "systeme") ?: "systeme"
+        set(v) = sp.edit().putString(KEY_LANGUAGE, v).apply()
+
     var screensaverMode: String
         get() = sp.getString(KEY_SAVER_MODE, "anime") ?: "anime"
         set(v) = sp.edit().putString(KEY_SAVER_MODE, v).apply()
@@ -314,6 +333,7 @@ class Prefs(context: Context) {
         const val KEY_WAKE_PROXIMITY = "wake_on_proximity"
         const val KEY_SAVER_DELAY = "screensaver_delay"
         const val KEY_SAVER_MODE = "screensaver_mode"
+        const val KEY_LANGUAGE = "language"
         const val KEY_PHOTO_FOLDER = "photo_folder"
         const val KEY_CHIME_FOLDER = "chime_folder"
         const val KEY_CHIME_FILE = "chime_file"

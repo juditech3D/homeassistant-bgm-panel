@@ -38,6 +38,12 @@ class DlnaRendererService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    // Meme raison que dans les ecrans : la langue choisie doit primer sur celle du
+    // panneau, y compris pour le libelle du canal de notification.
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(com.judit.hapanel.LocaleHelper.wrap(base))
+    }
+
     override fun onCreate() {
         super.onCreate()
         audio = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -189,7 +195,11 @@ class DlnaRendererService : Service() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Lecteur réseau", NotificationManager.IMPORTANCE_MIN)
+                NotificationChannel(
+                    CHANNEL_ID,
+                    getString(com.judit.hapanel.R.string.dlna_channel),
+                    NotificationManager.IMPORTANCE_MIN
+                )
                     .apply { setShowBadge(false) }
             )
         }
@@ -200,7 +210,7 @@ class DlnaRendererService : Service() {
             Notification.Builder(this)
         }
         return builder
-            .setContentTitle("Lecteur réseau actif")
+            .setContentTitle(getString(com.judit.hapanel.R.string.dlna_active))
             .setContentText("Le panneau est disponible dans Home Assistant")
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)

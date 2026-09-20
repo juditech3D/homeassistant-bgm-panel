@@ -3,6 +3,7 @@ package com.judit.hapanel
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
@@ -38,6 +39,7 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var saverDelayField: EditText
     private lateinit var saverModeField: Spinner
     private lateinit var photoFolderField: EditText
+    private lateinit var languageField: Spinner
     private lateinit var chimeChoiceField: Spinner
     private lateinit var chimeOnDoorbellField: CheckBox
     private lateinit var assistantEnabledField: CheckBox
@@ -73,6 +75,12 @@ class SetupActivity : AppCompatActivity() {
 
     /** L'entrée 0 est toujours le carillon synthétisé par l'application. */
     private var chimeValues: List<String> = listOf("")
+
+    // La langue choisie dans les reglages s'impose avant que la moindre ressource soit
+    // lue : posee plus tard, elle laisserait les textes deja resolus dans l'ancienne.
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(LocaleHelper.wrap(base))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,6 +118,10 @@ class SetupActivity : AppCompatActivity() {
             "monitor", R.color.domain_cover, R.string.section_display
         )
         setupSection(
+            R.id.header_launcher, R.id.section_launcher, false,
+            "home-outline", R.color.domain_climate, R.string.section_launcher
+        )
+        setupSection(
             R.id.header_network, R.id.section_network, false,
             "wifi", R.color.domain_sensor, R.string.section_network
         )
@@ -143,6 +155,7 @@ class SetupActivity : AppCompatActivity() {
         saverDelayField = findViewById(R.id.screensaver_delay)
         saverModeField = findViewById(R.id.screensaver_mode)
         photoFolderField = findViewById(R.id.photo_folder)
+        languageField = findViewById(R.id.language_choice)
         chimeChoiceField = findViewById(R.id.chime_choice)
         chimeOnDoorbellField = findViewById(R.id.chime_on_doorbell)
         assistantEnabledField = findViewById(R.id.assistant_enabled)
@@ -208,6 +221,33 @@ class SetupActivity : AppCompatActivity() {
         saverModeField.setSelection(
             saverModeValues.indexOf(prefs.screensaverMode).coerceAtLeast(0)
         )
+
+        languageField.adapter = ArrayAdapter(
+            this, android.R.layout.simple_spinner_dropdown_item,
+            LocaleHelper.CHOICES.map { LocaleHelper.label(this, it) }
+        )
+        languageField.setSelection(
+            LocaleHelper.CHOICES.indexOf(prefs.language).coerceAtLeast(0)
+        )
+        // Pose apres setSelection, sinon la selection initiale passerait pour un choix
+        // de l'utilisateur et l'ecran se reconstruirait a chaque ouverture.
+        languageField.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                val choix = LocaleHelper.CHOICES.getOrElse(pos) { LocaleHelper.SYSTEM }
+                if (choix == prefs.language) return
+
+                // Ce qui est deja saisi est mis a l'abri avant de tout reconstruire --
+                // mais seulement si l'enregistrement peut aboutir, pour ne pas faire
+                // surgir un reproche alors qu'on ne demandait qu'un changement de langue.
+                val complet = hostField.text.isNotBlank() && tokenField.text.isNotBlank()
+                if (complet) saveAll()
+
+                prefs.language = choix
+                recreate()
+            }
+
+            override fun onNothingSelected(p: AdapterView<*>?) = Unit
+        }
 
         val files = chimePlayer.availableChimes()
         chimeValues = listOf("") + files.map { it.absolutePath }
@@ -365,6 +405,13 @@ class SetupActivity : AppCompatActivity() {
             // Enregistrer d'abord, sinon on entendrait le carillon précédent.
             prefs.chimeFile = chimeValues.getOrElse(chimeChoiceField.selectedItemPosition) { "" }
             chimePlayer.play()
+        }
+
+        // Tonalite de quelques secondes sur la sortie musique. Contrairement au carillon,
+        // qui passe par le flux des notifications, elle emprunte le meme chemin que la
+        // musique : c'est donc elle qui dit si le son part bien vers l'enceinte Bluetooth.
+        findViewById<Button>(R.id.audio_test).setOnClickListener {
+            AudioController(this).playTestTone()
         }
 
         // Le test rejoue la séquence entière depuis le tableau de bord, exactement comme

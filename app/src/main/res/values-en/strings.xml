@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    English translation. The default locale of this application is French: a panel set to
+    any other language falls back to it rather than to English, which is deliberate given
+    where these panels are installed. The choice is overridable from the settings, see
+    LocaleHelper.
+
+    Every apostrophe is escaped. An unescaped one silently breaks resource compilation,
+    and English has a great many of them.
+-->
+<resources>
+    <string name="app_name">HA Panel 7p</string>
+    <string name="setup_title">Panel setup</string>
+
+    <string name="hint_host">Home Assistant server address</string>
+    <string name="hint_port">Port</string>
+    <string name="hint_token">Long-lived access token</string>
+    <string name="hint_pinned">Entities to show (empty = automatic)</string>
+
+    <string name="hint_saver_delay">Screensaver after (s, 0 = never)</string>
+    <string name="hint_photo_folder">Folder holding the slideshow photos</string>
+    <string name="saver_animated">Animated background</string>
+    <string name="saver_photos">Photo slideshow</string>
+    <string name="hint_timeout">Screen off after (s, 0 = never)</string>
+    <string name="chime_label">Chime</string>
+    <string name="chime_test">Try it</string>
+    <string name="audio_test">Audio test (tone)</string>
+    <string name="language_label">Language</string>
+    <string name="language_system">Panel language</string>
+    <string name="chime_builtin">Built-in chime</string>
+    <string name="chime_on_doorbell">Play the chime when someone rings (DB terminal)</string>
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="section_features">Features</string>
+    <string name="features_help">Turn on only what your panel actually has. A disabled feature is fully inactive: nothing is read, written or published.</string>
+    <string name="feature_knob_screen">Round screen inside the knob</string>
+    <string name="feature_panel_volume">Amplifier volume card</string>
+    <string name="feature_vendor_hw">Vendor hardware: LED ring, buzzer, relays, RS485</string>
+    <string name="feature_doorbell">Doorbell (DB terminal) and chime</string>
+    <string name="feature_dlna">DLNA renderer (receive audio from Home Assistant)</string>
+
+    <string name="section_connection">Server connection</string>
+    <string name="section_entities">Visible entities</string>
+    <string name="section_display">Screen and standby</string>
+    <string name="section_audio">Audio, doorbell and assistant</string>
+    <string name="camera_connecting">Connecting to the camera…</string>
+    <string name="camera_unavailable">%1$s: no image — camera down?</string>
+    <string name="camera_scroll_hint">Drag to pan · pinch to zoom · tap to close</string>
+    <string name="camera_label">Camera shown when someone rings</string>
+    <string name="camera_none">None</string>
+    <string name="camera_loading">Looking for cameras…</string>
+    <string name="camera_none_found">No camera found on the server</string>
+    <string name="camera_go2rtc">%1$s  (go2rtc)</string>
+    <string name="hint_go2rtc">go2rtc address, e.g. http://192.168.1.10:1984</string>
+    <string name="hint_doorbell_camera_seconds">How long to show it (s)</string>
+    <string name="doorbell_test">Test the whole doorbell sequence (chime + camera)</string>
+    <!-- Home screen -->
+    <string name="launcher_help">By default the vendor menu appears at every boot, before the app. Making HA Panel the home screen means the panel starts straight into it. You can always go back, and the app keeps its icon in the vendor menu.</string>
+    <string name="launcher_take">Start on HA Panel</string>
+    <string name="launcher_give_back">Start on the vendor menu</string>
+    <string name="launcher_release">Open the vendor menu</string>
+    <string name="launcher_is_default">HA Panel is the home screen.</string>
+    <string name="launcher_is_vendor">The vendor menu is the home screen.</string>
+    <string name="launcher_taken">HA Panel will now start directly.</string>
+    <string name="launcher_use_system">To be chosen in the Android settings.</string>
+
+    <string name="mic_label">Mic</string>
+    <string name="assistant_needs_mic">The microphone is off: turn it back on to speak to the assistant.</string>
+    <string name="feature_microphone">Microphone / private mode</string>
+    <string name="assistant_enabled">Voice assistant (needs the microphone)</string>
+    <string name="hint_brightness">Screen brightness (5 to 100 %)</string>
+    <string name="wake_proximity">Wake the screen when someone comes close</string>
+
+    <!-- Networking: Wi-Fi and Bluetooth -->
+    <string name="network_title">Network and Bluetooth</string>
+    <string name="open_network">Wi-Fi and Bluetooth…</string>
+    <string name="section_network">Network</string>
+    <string name="wifi_fallback">Offer Wi-Fi if the Ethernet cable does not answer</string>
+    <string name="feature_bluetooth">Bluetooth audio</string>
+
+    <string name="wifi_title">Wi-Fi</string>
+    <string name="wifi_enable">Wi-Fi on</string>
+    <string name="wifi_scan">Scan</string>
+    <string name="wifi_scanning">Scanning for networks…</string>
+    <string name="wifi_none_found">No network found</string>
+    <string name="wifi_on_ethernet">The panel is wired over Ethernet (%1$s). Wi-Fi is not needed.</string>
+    <string name="wifi_no_ethernet">No Ethernet link detected.</string>
+    <string name="wifi_connected_to">Connected to %1$s (%2$s)</string>
+    <string name="wifi_not_connected">Wi-Fi not connected</string>
+    <string name="wifi_disabled">Wi-Fi off</string>
+    <string name="wifi_saved">saved</string>
+    <string name="wifi_open">open network</string>
+    <string name="wifi_secured">secured</string>
+    <string name="wifi_password">Password</string>
+    <string name="wifi_show_password">Show the password</string>
+    <string name="wifi_connect">Connect</string>
+    <string name="wifi_forget">Forget</string>
+    <string name="wifi_connecting_to">Connecting to %1$s…</string>
+    <string name="wifi_add_failed">Network refused by the system</string>
+    <string name="wifi_connect_failed">Connection refused</string>
+    <string name="wifi_forgotten">%1$s forgotten</string>
+    <string name="wifi_need_location">Android 8 only allows network scanning when location is turned on.</string>
+    <string name="wifi_location_enable">Turn on location</string>
+    <string name="wifi_location_failed">Refused: to be done in the Android settings.</string>
+
+    <string name="bt_title">Bluetooth</string>
+    <string name="bt_enable">Bluetooth on</string>
+    <string name="bt_mode">Audio direction</string>
+    <string name="bt_mode_in">In — receive music from a phone</string>
+    <string name="bt_mode_out">Out — stream to a speaker or headphones</string>
+    <string name="bt_mode_in_help">The panel makes itself visible; the phone is what connects to it. Sound comes out of the speaker and the speaker terminals.</string>
+    <string name="bt_mode_out_help">The panel looks for nearby speakers and headphones and connects to them. Its own speaker then goes quiet.</string>
+    <string name="bt_test_audio">Audio test</string>
+    <string name="bt_test_audio_playing">Test tune playing…</string>
+    <string name="bt_name">Panel name</string>
+    <string name="bt_discoverable">Be visible for 5 min</string>
+    <string name="bt_discoverable_on">Visible to phones for 5 minutes</string>
+    <string name="bt_scan">Scan</string>
+    <string name="bt_scanning">Scanning for devices…</string>
+    <string name="bt_none_found">No device</string>
+    <string name="bt_unsupported">This panel has no Bluetooth</string>
+    <string name="bt_off">Bluetooth off</string>
+    <string name="bt_waiting_phone">Waiting for a phone</string>
+    <string name="bt_no_speaker">No speaker connected</string>
+    <string name="bt_receiving_from">Receiving from %1$s</string>
+    <string name="bt_sending_to">Streaming to %1$s</string>
+    <string name="bt_paired">paired</string>
+    <string name="bt_connected">connected</string>
+    <string name="bt_pairing">Pairing with %1$s…</string>
+    <string name="bt_connecting">Connecting to %1$s…</string>
+    <string name="bt_disconnect">Disconnect</string>
+    <string name="bt_forget">Forget</string>
+    <string name="bt_action_failed">%1$s: the system refused</string>
+
+    <!-- Camera view -->
+    <string name="cameras_title">Cameras</string>
+    <string name="cameras_none">No camera found. Fill in the go2rtc address in the settings, or check that your server exposes camera entities.</string>
+    <string name="cameras_choose">Choose which cameras to show</string>
+    <string name="cameras_all">All</string>
+    <string name="cameras_loading">Looking for cameras…</string>
+
+    <!-- Rooms assigned from the panel -->
+    <string name="area_choose">File “%1$s” under…</string>
+    <string name="area_new">New room…</string>
+    <string name="area_none">No room</string>
+    <string name="area_name_hint">Room name</string>
+
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+
+    <!-- Multiroom music card -->
+    <string name="media_title">MUSIC</string>
+    <string name="media_artwork">Artwork</string>
+    <string name="media_no_volume">%1$s announces no volume control: the knob can do nothing about it.</string>
+    <string name="media_nothing">Nothing playing</string>
+    <string name="media_idle">Silent</string>
+    <string name="feature_media_card">Multiroom music card</string>
+
+    <!-- Zigbee bridge -->
+    <string name="section_zigbee">Zigbee</string>
+    <string name="zigbee_title">Zigbee bridge</string>
+    <string name="zigbee_help">This panel may carry a Zigbee co-processor on a serial port. The bridge exposes it over the network so that Zigbee2MQTT or ZHA, running on the Home Assistant server, can use it.</string>
+    <string name="feature_zigbee">Expose the Zigbee radio on the network</string>
+    <string name="hint_zigbee_device">Serial port, e.g. /dev/ttyS3</string>
+    <string name="hint_zigbee_port">TCP port to listen on</string>
+    <string name="zigbee_probe">Look for the Zigbee radio</string>
+    <string name="zigbee_probing">Querying the serial port…</string>
+    <string name="zigbee_found">Radio found: answered %1$s — EmberZNet co-processor</string>
+    <string name="zigbee_not_found">Nothing answered on this port: no Zigbee radio</string>
+    <string name="zigbee_running">Listening on port %1$d</string>
+    <string name="zigbee_address">Address to give the server: tcp://%1$s:%2$d</string>
+
+    <!-- Updates over the network -->
+    <string name="section_updates">Updates</string>
+    <string name="updates_help">The panel fetches its own new version: a GitHub repository written “account/repo”, or the address of a JSON file placed, for instance, in the Home Assistant www folder.</string>
+    <string name="hint_update_source">GitHub repository or address of the version file</string>
+    <string name="update_auto">Check at start-up</string>
+    <string name="update_check">Check now</string>
+    <string name="update_installed">Installed version: %1$s</string>
+    <string name="update_checking">Looking for an update…</string>
+    <string name="update_up_to_date">The panel is up to date (%1$s)</string>
+    <string name="update_available">Version %1$s available</string>
+    <string name="update_postponed">Postponed. The badge in the top bar will be the reminder.</string>
+    <string name="update_install">Install</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading… %1$d %%</string>
+    <string name="update_downloading_unknown">Downloading…</string>
+    <string name="update_installing">Installing; the panel will restart the app…</string>
+    <string name="update_no_source">No update source given</string>
+    <string name="update_no_release">No release published at that address</string>
+    <string name="update_failed">Update failed</string>
+    <string name="update_http_error">The server answered %1$d</string>
+    <string name="update_truncated">Incomplete file, install cancelled</string>
+
+    <string name="use_tls">Use HTTPS / WSS</string>
+    <string name="publish_sensors">Publish the panel\'s sensors to Home Assistant</string>
+    <string name="connect">Connect</string>
+    <string name="choose_entities">Choose which entities to show…</string>
+    <string name="need_host_token">The address and the token are both required</string>
+
+    <string name="setup_help">The token is created in Home Assistant: your profile, Security tab, “Long-lived access tokens”.</string>
+
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_connected">Connected</string>
+    <string name="status_disconnected">Disconnected: %1$s</string>
+    <string name="room_all_on">%1$s: all on</string>
+    <string name="room_all_off">%1$s: all off</string>
+    <string name="knob_hint">Knob: turn = adjust · press = on/off    —    Long press: file a tile under a room, or control the whole room</string>
+    <string name="settings">Settings</string>
+    <string name="entities">Entities</string>
+    <string name="no_entities">Nothing to show. Check the selection in the settings.</string>
+
+    <string name="picker_title">Entities to show</string>
+    <string name="picker_search">Search by name or id…</string>
+    <string name="picker_loading">Fetching the entities…</string>
+    <string name="picker_error">Failed: %1$s</string>
+    <string name="picker_count">%1$d selected out of %2$d</string>
+    <string name="picker_save">Confirm</string>
+    <string name="picker_cancel">Cancel</string>
+    <string name="picker_clear">Untick everything</string>
+    <string name="picker_saved">%1$d entity(ies) kept</string>
+    <string name="picker_all_areas">All rooms</string>
+    <string name="picker_no_area">No room</string>
+    <string name="picker_select_shown">Tick the list</string>
+    <string name="picker_no_areas_found">No room defined in Home Assistant</string>
+    <string name="picker_saved_auto">Nothing selected: automatic discovery turned back on</string>
+
+    <!-- Strings that used to be hard-coded in the source. -->
+    <string name="assistant_name">Voice assistant</string>
+    <string name="assistant_unavailable">Unavailable</string>
+    <string name="assistant_listening">Listening</string>
+    <string name="assistant_answering">Answering</string>
+    <string name="assistant_speak">Speak</string>
+    <string name="mic_on_name">Microphone on</string>
+    <string name="mic_off_name">Private mode</string>
+    <string name="mic_on_state">ON</string>
+    <string name="mic_off_state">OFF</string>
+    <string name="panel_volume_name">Panel volume</string>
+    <string name="sensor_humidity">Humidity %1$.0f %%</string>
+    <string name="sensor_battery">Battery %1$.0f %%</string>
+    <string name="camera_no_image">no usable image (%1$d bytes) — the camera is probably down</string>
+    <string name="dlna_channel">Network renderer</string>
+    <string name="dlna_active">Network renderer running</string>
+    <string name="ha_token_refused">token refused by Home Assistant</string>
+    <string name="ha_closed">closed (%1$d)</string>
+    <string name="ha_http_code">answered %1$d</string>
+    <string name="weather_sunny">Sunny</string>
+    <string name="weather_clear_night">Clear night</string>
+    <string name="weather_hail">Hail</string>
+    <string name="weather_exceptional">Extreme conditions</string>
+
+    <plurals name="room_lights_on">
+        <item quantity="one">%1$s   ·   %2$d on</item>
+        <item quantity="other">%1$s   ·   %2$d on</item>
+    </plurals>
+    <string name="section_launcher">Home screen and start-up</string>
+    <string name="weather_partlycloudy">Partly cloudy</string>
+    <string name="weather_cloudy">Cloudy</string>
+    <string name="weather_fog">Fog</string>
+    <string name="weather_lightning">Thunderstorms</string>
+    <string name="weather_lightning_rainy">Thunderstorms and rain</string>
+    <string name="weather_pouring">Heavy rain</string>
+    <string name="weather_rainy">Rainy</string>
+    <string name="weather_snowy">Snowy</string>
+    <string name="weather_snowy_rainy">Sleet</string>
+    <string name="weather_windy">Windy</string>
+</resources>

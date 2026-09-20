@@ -1,5 +1,6 @@
 package com.judit.hapanel
 
+import android.content.Context
 import android.graphics.Color
 import org.json.JSONObject
 
@@ -37,7 +38,7 @@ object SensorMerge {
      * complémentaire est reprise de là, même si elle n'a pas été épinglée. C'est le
      * comportement attendu — on épingle « la sonde », pas « la température de la sonde ».
      */
-    fun merge(shown: List<Entity>, all: List<Entity>): List<Entity> {
+    fun merge(context: Context, shown: List<Entity>, all: List<Entity>): List<Entity> {
         val parId = all.associateBy { it.entityId }
         val absorbees = HashSet<String>()
         val sortie = ArrayList<Entity>(shown.size)
@@ -61,7 +62,7 @@ object SensorMerge {
 
             humidite?.let { absorbees.add(it.entityId) }
             batterie?.let { absorbees.add(it.entityId) }
-            sortie.add(fusionner(entity, humidite, batterie))
+            sortie.add(fusionner(context, entity, humidite, batterie))
         }
 
         // Une humidité épinglée seule reste affichée : mieux vaut la montrer telle
@@ -78,7 +79,12 @@ object SensorMerge {
      * La batterie rejoint la ligne secondaire plutôt qu'une tuile à elle : c'est une
      * information de maintenance, qu'on veut voir sans qu'elle occupe une case entière.
      */
-    private fun fusionner(temperature: Entity, humidite: Entity?, batterie: Entity?): Entity {
+    private fun fusionner(
+        context: Context,
+        temperature: Entity,
+        humidite: Entity?,
+        batterie: Entity?
+    ): Entity {
         val degres = temperature.state.toDoubleOrNull()
         val pourcent = humidite?.state?.toDoubleOrNull()
         val charge = batterie?.state?.toDoubleOrNull()
@@ -91,8 +97,8 @@ object SensorMerge {
             put("unit_of_measurement", temperature.attributes.optString("unit_of_measurement"))
             put("device_class", "temperature")
             val details = ArrayList<String>(2)
-            if (pourcent != null) details.add(String.format("Humidité %.0f %%", pourcent))
-            if (charge != null) details.add(String.format("Batterie %.0f %%", charge))
+            if (pourcent != null) details.add(context.getString(R.string.sensor_humidity, pourcent))
+            if (charge != null) details.add(context.getString(R.string.sensor_battery, charge))
             if (details.isNotEmpty()) put(SECONDARY, details.joinToString("  ·  "))
             put(TINT, couleur(degres, pourcent))
         }

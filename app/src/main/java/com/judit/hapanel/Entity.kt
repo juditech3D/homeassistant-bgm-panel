@@ -1,5 +1,6 @@
 package com.judit.hapanel
 
+import android.content.Context
 import org.json.JSONObject
 
 /** Une entité Home Assistant, réduite à ce dont le panneau a besoin. */
@@ -94,32 +95,44 @@ data class Entity(
          * Tuile de l'assistant vocal. L'icône et le libellé suivent l'étape en cours,
          * pour qu'on sache d'un coup d'œil si le micro est ouvert.
          */
-        fun panelAssistant(state: VoiceAssistant.State, available: Boolean): Entity {
+        fun panelAssistant(
+            context: Context,
+            state: VoiceAssistant.State,
+            available: Boolean
+        ): Entity {
             val (icon, label) = when {
-                !available -> "microphone-off" to "Indisponible"
-                state == VoiceAssistant.State.LISTENING -> "microphone" to "J'écoute"
+                !available -> "microphone-off" to context.getString(R.string.assistant_unavailable)
+                state == VoiceAssistant.State.LISTENING ->
+                    "microphone" to context.getString(R.string.assistant_listening)
                 state == VoiceAssistant.State.THINKING -> "dots-horizontal" to "…"
-                state == VoiceAssistant.State.SPEAKING -> "account-voice" to "Réponse"
-                else -> "microphone-outline" to "Parler"
+                state == VoiceAssistant.State.SPEAKING ->
+                    "account-voice" to context.getString(R.string.assistant_answering)
+                else -> "microphone-outline" to context.getString(R.string.assistant_speak)
             }
             return Entity(
                 entityId = PANEL_ASSISTANT_ID,
                 state = if (state != VoiceAssistant.State.IDLE) "on" else "off",
                 attributes = JSONObject()
-                    .put("friendly_name", "Assistant vocal")
+                    .put("friendly_name", context.getString(R.string.assistant_name))
                     .put("icon", "mdi:$icon")
                     .put("panel_label", label)
             )
         }
 
         /** Tuile du mode privé. Allumée = micro autorisé. */
-        fun panelMicrophone(enabled: Boolean): Entity = Entity(
+        fun panelMicrophone(context: Context, enabled: Boolean): Entity = Entity(
             entityId = PANEL_MIC_ID,
             state = if (enabled) "on" else "off",
             attributes = JSONObject()
-                .put("friendly_name", if (enabled) "Micro actif" else "Mode privé")
+                .put(
+                    "friendly_name",
+                    context.getString(if (enabled) R.string.mic_on_name else R.string.mic_off_name)
+                )
                 .put("icon", if (enabled) "mdi:microphone" else "mdi:microphone-off")
-                .put("panel_label", if (enabled) "ACTIF" else "COUPÉ")
+                .put(
+                    "panel_label",
+                    context.getString(if (enabled) R.string.mic_on_state else R.string.mic_off_state)
+                )
         )
 
         /**
@@ -127,11 +140,11 @@ data class Entity(
          * l'amplificateur. Reconstruite à chaque rafraîchissement plutôt que mise à
          * jour : c'est le matériel qui fait foi, pas une valeur mémorisée.
          */
-        fun panelVolume(level: Float, muted: Boolean): Entity = Entity(
+        fun panelVolume(context: Context, level: Float, muted: Boolean): Entity = Entity(
             entityId = PANEL_VOLUME_ID,
             state = if (muted) "off" else "on",
             attributes = JSONObject()
-                .put("friendly_name", "Volume du panneau")
+                .put("friendly_name", context.getString(R.string.panel_volume_name))
                 .put("volume_level", level.toDouble())
                 .put("icon", if (muted) "mdi:volume-off" else "mdi:volume-high")
         )

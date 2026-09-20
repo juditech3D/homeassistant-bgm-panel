@@ -17,3 +17,5 @@ keystore/
 *.jpeg
 *.png
 !app/src/main/res/**/*.png
+# Les captures d'ecran du README, elles, font partie du depot.
+!docs/images/*.png

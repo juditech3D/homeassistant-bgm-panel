@@ -59,6 +59,49 @@ class BluetoothController(private val context: Context) {
 
     private val adapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
 
+    /**
+     * Mandataires des deux profils audio, ouverts une fois pour toutes.
+     *
+     * Ils ne peuvent pas être obtenus à la demande : Android délivre le mandataire **sur
+     * le fil principal**, si bien qu'attendre sa venue depuis ce même fil est un
+     * interblocage garanti. L'attente expirait donc toujours, et l'écran annonçait
+     * « aucune enceinte connectée » sur une enceinte bel et bien reliée — la machine à
+     * états du système disant, elle, `A2dpStateMachine=Connected`. Bug réel, constaté
+     * sur le panneau.
+     *
+     * Ouverts à la construction, ils sont ensuite consultables sans rien bloquer.
+     */
+    @Volatile
+    private var sourceProxy: BluetoothProfile? = null
+
+    @Volatile
+    private var sinkProxy: BluetoothProfile? = null
+
+    init {
+        openProxy(BluetoothProfile.A2DP) { sourceProxy = it }
+        openProxy(PROFILE_A2DP_SINK) { sinkProxy = it }
+    }
+
+    /** Demande un mandataire et le range quand il arrive. Ne bloque rien. */
+    private fun openProxy(profileId: Int, ranger: (BluetoothProfile?) -> Unit) {
+        val a = adapter ?: return
+        try {
+            a.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
+                override fun onServiceConnected(p: Int, service: BluetoothProfile?) {
+                    ranger(service)
+                    Log.i(TAG, "mandataire du profil $p disponible")
+                }
+
+                override fun onServiceDisconnected(p: Int) = ranger(null)
+            }, profileId)
+        } catch (e: Exception) {
+            Log.w(TAG, "profil $profileId indisponible : ${e.message}")
+        }
+    }
+
+    private fun proxyFor(mode: Mode): BluetoothProfile? =
+        if (mode == Mode.SORTIE) sourceProxy else sinkProxy
+
     /** Faux sur un panneau dépourvu de Bluetooth : l'écran le dit alors clairement. */
     val isSupported: Boolean get() = adapter != null
 
@@ -262,118 +305,75 @@ class BluetoothController(private val context: Context) {
         }
     }
 
-    private fun connectProfile(device: BluetoothDevice, mode: Mode): Boolean =
-        callProfileMethod(device, mode, "connect")
+    private fun connectProfile(device: BluetoothDevice, mode: Mode): Boolean {
+        // Le rôle opposé est mis hors course sur cet appareil avant de connecter.
+        //
+        // Ce panneau tient les deux rôles A2DP à la fois, et sa pile Bluetooth — un
+        // Android 8.1 de 2018 — ne le supporte pas sur un même appareil : connecter une
+        // enceinte en émission réveille le gestionnaire AVRCP du rôle récepteur, qui
+        // déréférence une liste nulle et **fait tomber tout le service Bluetooth**.
+        // Constaté en tentant d'appairer une enceinte Google Home :
+        //
+        //   [FATAL:list.cc(191)] Check failed: list != NULL
+        //   handle_avk_rc_metamsg_rsp -> btif_av_state_opened_handler
+        //
+        // Le défaut est dans `bluetooth.default.so` et n'est pas corrigeable ici. On
+        // évite donc d'y entrer, en interdisant au rôle inverse de s'associer.
+        setProfilePriorityOff(device, if (mode == Mode.SORTIE) PROFILE_A2DP_SINK else BluetoothProfile.A2DP)
+        return callProfileMethod(device, mode, "connect")
+    }
 
     /**
-     * Appelle `connect` ou `disconnect` sur le mandataire du profil A2DP correspondant au
-     * sens choisi. Les deux méthodes sont masquées, d'où la réflexion.
-     *
-     * Le mandataire s'obtient de façon asynchrone : on attend brièvement sa mise à
-     * disposition plutôt que de rendre toute la chaîne asynchrone pour un appel qui, en
-     * pratique, aboutit en quelques dizaines de millisecondes.
+     * Interdit à un profil de s'associer à cet appareil. `setPriority` est masquée dans
+     * le SDK public ; un échec n'est pas bloquant, on tente la connexion malgré tout.
      */
+    private fun setProfilePriorityOff(device: BluetoothDevice, profileId: Int) {
+        val service = if (profileId == BluetoothProfile.A2DP) sourceProxy else sinkProxy
+        if (service == null) {
+            Log.d(TAG, "profil $profileId pas encore disponible, priorité inchangée")
+            return
+        }
+        try {
+            service.javaClass
+                .getMethod("setPriority", BluetoothDevice::class.java, Int::class.javaPrimitiveType)
+                .invoke(service, device, PRIORITY_OFF)
+            Log.i(TAG, "profil $profileId écarté sur ${device.address}")
+        } catch (e: Exception) {
+            Log.d(TAG, "setPriority indisponible pour $profileId : ${e.message}")
+        }
+    }
+
     private fun callProfileMethod(
         device: BluetoothDevice,
         mode: Mode,
         method: String
     ): Boolean {
-        val a = adapter ?: return false
-        val profileId = if (mode == Mode.SORTIE) BluetoothProfile.A2DP else PROFILE_A2DP_SINK
-
-        var proxy: BluetoothProfile? = null
-        val ready = java.util.concurrent.CountDownLatch(1)
-        val listener = object : BluetoothProfile.ServiceListener {
-            override fun onServiceConnected(p: Int, service: BluetoothProfile?) {
-                proxy = service
-                ready.countDown()
-            }
-
-            override fun onServiceDisconnected(p: Int) {
-                ready.countDown()
-            }
-        }
-
-        if (!a.getProfileProxy(context, listener, profileId)) {
-            Log.w(TAG, "profil $profileId indisponible sur ce panneau")
+        val service = proxyFor(mode) ?: run {
+            Log.w(TAG, "mandataire du sens $mode pas encore disponible")
             return false
         }
-        ready.await(2, java.util.concurrent.TimeUnit.SECONDS)
-
-        val service = proxy ?: return false
         return try {
             service.javaClass
                 .getMethod(method, BluetoothDevice::class.java)
                 .invoke(service, device) as? Boolean ?: false
         } catch (e: Exception) {
-            Log.w(TAG, "$method du profil $profileId refusé : ${e.message}")
+            Log.w(TAG, "$method refusé pour $mode : ${e.message}")
             false
-        } finally {
-            try {
-                a.closeProfileProxy(profileId, service)
-            } catch (e: Exception) {
-                // Sans conséquence.
-            }
         }
     }
 
     /** Les adresses actuellement reliées pour le sens demandé. */
     private fun connectedAddresses(mode: Mode): Set<String> {
-        val a = adapter ?: return emptySet()
-        val profileId = if (mode == Mode.SORTIE) BluetoothProfile.A2DP else PROFILE_A2DP_SINK
-
-        // getProfileConnectionState ne dit que « quelque chose est connecté », sans dire
-        // quoi : pour nommer l'appareil il faut le mandataire. On ne le prend que si la
-        // réponse est positive, pour ne pas ouvrir un service à chaque rafraîchissement.
-        if (a.getProfileConnectionState(profileId) != BluetoothProfile.STATE_CONNECTED) {
-            return emptySet()
-        }
-
-        var proxy: BluetoothProfile? = null
-        val ready = java.util.concurrent.CountDownLatch(1)
-        val listener = object : BluetoothProfile.ServiceListener {
-            override fun onServiceConnected(p: Int, service: BluetoothProfile?) {
-                proxy = service
-                ready.countDown()
-            }
-
-            override fun onServiceDisconnected(p: Int) {
-                ready.countDown()
-            }
-        }
-        if (!a.getProfileProxy(context, listener, profileId)) return emptySet()
-        ready.await(1, java.util.concurrent.TimeUnit.SECONDS)
-
-        val service = proxy ?: return emptySet()
+        val service = proxyFor(mode) ?: return emptySet()
         return try {
             service.connectedDevices.map { it.address }.toSet()
         } catch (e: Exception) {
             emptySet()
-        } finally {
-            try {
-                a.closeProfileProxy(profileId, service)
-            } catch (e: Exception) {
-                // Sans conséquence.
-            }
         }
     }
 
-    /**
-     * Vrai si un appareil est relié dans ce sens.
-     *
-     * Ne demande que l'état global du profil, sans ouvrir de mandataire : le tableau de
-     * bord appelle ceci à chaque rafraîchissement, et ouvrir un service à chaque fois
-     * serait ruineux.
-     */
-    fun hasConnection(mode: Mode): Boolean {
-        val a = adapter ?: return false
-        val profileId = if (mode == Mode.SORTIE) BluetoothProfile.A2DP else PROFILE_A2DP_SINK
-        return try {
-            a.getProfileConnectionState(profileId) == BluetoothProfile.STATE_CONNECTED
-        } catch (e: Exception) {
-            false
-        }
-    }
+    /** Vrai dès qu'un appareil est relié dans ce sens. */
+    fun hasConnection(mode: Mode): Boolean = connectedAddresses(mode).isNotEmpty()
 
     /** Résumé d'une ligne pour l'écran de réglages : ce qui est relié, et dans quel sens. */
     fun summary(mode: Mode): String {
@@ -409,6 +409,9 @@ class BluetoothController(private val context: Context) {
          * `a2dpsink.A2dpSinkService` répond bien à `android.bluetooth.IBluetoothA2dpSink`.
          */
         const val PROFILE_A2DP_SINK = 11
+
+        /** `BluetoothProfile.PRIORITY_OFF`, masquée dans le SDK public. */
+        const val PRIORITY_OFF = 0
 
         const val ACTION_A2DP_STATE = "android.bluetooth.a2dp.profile.action.CONNECTION_STATE_CHANGED"
         const val ACTION_A2DP_SINK_STATE = "android.bluetooth.a2dp-sink.profile.action.CONNECTION_STATE_CHANGED"

@@ -109,6 +109,12 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      */
     private var allEntities: List<Entity> = emptyList()
 
+    // La langue choisie dans les reglages s'impose avant que la moindre ressource soit
+    // lue : posee plus tard, elle laisserait les textes deja resolus dans l'ancienne.
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(LocaleHelper.wrap(base))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
@@ -702,9 +708,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
     /** L'état courant de l'amplificateur : la cible si on règle, sinon le matériel. */
     private fun currentPanelVolumeEntity(): Entity =
-        Entity.panelVolume(panelVolumeTarget ?: audio?.volume() ?: 0f, VendorHw.isMuted())
+        Entity.panelVolume(this, panelVolumeTarget ?: audio?.volume() ?: 0f, VendorHw.isMuted())
 
     private fun currentAssistantEntity(): Entity = Entity.panelAssistant(
+        this,
         assistant?.state ?: VoiceAssistant.State.IDLE,
         assistant?.isAvailable ?: false
     )
@@ -1027,7 +1034,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun applySelection() {
         // Les mesures d'une meme sonde sont reunies sur une seule tuile : temperature et
         // humidite disaient deux fois le nom du meme appareil.
-        val shown = SensorMerge.merge(selectEntities(allEntities), allEntities)
+        val shown = SensorMerge.merge(this, selectEntities(allEntities), allEntities)
         adapter.submit(shown)
         applyAreas()
         refreshWeather()

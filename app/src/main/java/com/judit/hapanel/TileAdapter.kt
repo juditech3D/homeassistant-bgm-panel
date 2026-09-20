@@ -221,7 +221,9 @@ class TileAdapter(
         holder.title.text = when {
             commandables.isEmpty() -> row.title
             allumees == 0 -> row.title
-            else -> "${row.title}   ·   $allumees allumée${if (allumees > 1) "s" else ""}"
+            else -> holder.title.resources.getQuantityString(
+                R.plurals.room_lights_on, allumees, row.title, allumees
+            )
         }
         holder.title.isEnabled = commandables.isNotEmpty()
         // Sélectionné au bouton rotatif : l'intertitre s'accentue, comme une tuile.

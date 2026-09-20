@@ -51,6 +51,12 @@ class EntityPickerActivity : AppCompatActivity() {
     /** entity_id retenus, dans l'ordre choisi par l'utilisateur. */
     private val chosen = LinkedHashSet<String>()
 
+    // La langue choisie dans les reglages s'impose avant que la moindre ressource soit
+    // lue : posee plus tard, elle laisserait les textes deja resolus dans l'ancienne.
+    override fun attachBaseContext(base: android.content.Context) {
+        super.attachBaseContext(LocaleHelper.wrap(base))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
