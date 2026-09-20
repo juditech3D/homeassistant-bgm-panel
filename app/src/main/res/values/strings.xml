@@ -328,7 +328,6 @@
     <string name="history_confirm_one">%1$s</string>
     <string name="history_confirm_many">%1$d captures seront supprimées. C\'est irréversible.</string>
     <string name="history_storage_full">Mémoire pleine : plus aucune sonnerie n\'est enregistrée. Touchez pour faire le ménage.</string>
-    <string name="history_rang_today">%1$d sonnerie(s) aujourd\'hui</string>
     <string name="history_test">TEST</string>
     <string name="history_all_days">Tous les jours</string>
     <string name="history_delete_tests">Effacer les tests</string>
@@ -350,8 +349,8 @@ Déposez-en un dans %1$s, par le partage réseau, puis revenez ici.</string>
     <string name="apps_cannot_launch">Cette application ne propose pas d\'écran à ouvrir.</string>
     <string name="apps_no_settings">Fiche Android indisponible sur ce panneau.</string>
     <string name="apps_no_uninstall">Désinstallation indisponible sur ce panneau.</string>
-    <plurals name="knob_rang_today">
-        <item quantity="one">%1$d sonnerie</item>
-        <item quantity="other">%1$d sonneries</item>
+    <plurals name="history_unseen">
+        <item quantity="one">%1$d nouvelle sonnerie</item>
+        <item quantity="other">%1$d nouvelles sonneries</item>
     </plurals>
 </resources>

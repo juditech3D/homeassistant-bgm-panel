@@ -122,6 +122,10 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         reload()
+
+        // Ouvrir la galerie vaut consultation : la pastille s'eteint, et ne se
+        // rallumera qu'au prochain coup de sonnette.
+        DoorbellHistory.markAllSeen(prefs)
     }
 
     /**

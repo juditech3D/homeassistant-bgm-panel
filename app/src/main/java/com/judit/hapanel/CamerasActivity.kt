@@ -74,15 +74,12 @@ class CamerasActivity : AppCompatActivity() {
      * que pas de pastille du tout.
      */
     private fun refreshRangToday() {
-        val jour = DoorbellHistory.today()
-        val combien = DoorbellHistory.countOn(prefs, jour)
+        val combien = DoorbellHistory.unseen(prefs).size
         val pastille = findViewById<TextView>(R.id.cameras_rang_today) ?: return
         pastille.visibility = if (combien > 0) View.VISIBLE else View.GONE
         if (combien > 0) {
-            pastille.text = getString(R.string.history_rang_today, combien)
-            pastille.setOnClickListener {
-                HistoryActivity.open(this@CamerasActivity, jour)
-            }
+            pastille.text = resources.getQuantityString(R.plurals.history_unseen, combien, combien)
+            pastille.setOnClickListener { HistoryActivity.open(this@CamerasActivity) }
         }
     }
 

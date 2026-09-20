@@ -220,7 +220,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         doorbellChip = findViewById(R.id.doorbell_chip)
         doorbellChip.setOnClickListener {
             lastInteraction = System.currentTimeMillis()
-            HistoryActivity.open(this, DoorbellHistory.today())
+            // Sans filtre de jour : les non-consultees peuvent s'etaler sur plusieurs
+            // jours si l'on n'est pas passe devant le panneau depuis un moment.
+            HistoryActivity.open(this)
         }
 
         historyBadge = findViewById(R.id.history_badge)
@@ -1048,9 +1050,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         if (maintenant - lastDoorbellCount < DOORBELL_COUNT_INTERVAL_MS) return
         lastDoorbellCount = maintenant
 
-        val combien = DoorbellHistory.countOn(prefs, DoorbellHistory.today())
+        // Les non-consultees, et non les captures du jour : la pastille est une
+        // notification, elle doit s'effacer quand on l'a lue plutot qu'a minuit.
+        val combien = DoorbellHistory.unseen(prefs).size
+        // Le meme texte que le bandeau, et pour cause : c'est le meme nombre. Deux
+        // formulations differentes pour une seule information laisseraient croire a deux
+        // comptages distincts -- « les nouvelles » ici, « celles du jour » la.
         knob.doorbellNotice = if (combien > 0) {
-            resources.getQuantityString(R.plurals.knob_rang_today, combien, combien)
+            resources.getQuantityString(R.plurals.history_unseen, combien, combien)
         } else {
             ""
         }
@@ -1062,7 +1069,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             if (isFinishing || !this::doorbellChip.isInitialized) return@runOnUiThread
             doorbellChip.visibility = if (combien > 0) View.VISIBLE else View.GONE
             if (combien > 0) {
-                doorbellChip.text = getString(R.string.history_rang_today, combien)
+                doorbellChip.text = resources.getQuantityString(R.plurals.history_unseen, combien, combien)
             }
         }
     }

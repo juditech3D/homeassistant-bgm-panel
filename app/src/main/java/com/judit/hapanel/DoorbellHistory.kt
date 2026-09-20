@@ -121,6 +121,32 @@ object DoorbellHistory {
     fun days(prefs: Prefs): List<String> =
         entries(prefs).map { dayOf(it) }.distinct()
 
+    /**
+     * Les captures qui n'ont pas encore ete consultees, de la plus recente a la plus
+     * ancienne.
+     *
+     * La comparaison porte sur les noms, qui se trient chronologiquement : tout ce qui
+     * vient apres la derniere capture vue est nouveau. Aucune date de fichier n'entre en
+     * jeu, et un dossier recopie ailleurs garde donc le meme decoupage.
+     */
+    fun unseen(prefs: Prefs): List<File> {
+        val marqueur = prefs.historySeenMarker
+        if (marqueur.isBlank()) return entries(prefs)
+        return entries(prefs).filter { it.name > marqueur }
+    }
+
+    /**
+     * Marque tout comme consulte.
+     *
+     * Le marqueur retient la capture la plus recente du moment. Celles qui arriveront
+     * ensuite porteront un nom superieur et seront donc a nouveau signalees -- c'est
+     * exactement ce qu'on attend d'une notification qu'on vient de lire.
+     */
+    fun markAllSeen(prefs: Prefs) {
+        val derniere = entries(prefs).firstOrNull() ?: return
+        prefs.historySeenMarker = derniere.name
+    }
+
     /** Combien de fois on a sonne ce jour-la. */
     fun countOn(prefs: Prefs, jour: String): Int =
         entries(prefs).count { dayOf(it) == jour }

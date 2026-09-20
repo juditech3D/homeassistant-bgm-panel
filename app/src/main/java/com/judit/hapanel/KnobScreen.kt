@@ -92,7 +92,9 @@ class KnobScreen {
     private val alertText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.rgb(255, 183, 77)
         textAlign = Paint.Align.CENTER
-        textSize = 17f
+        // Assez petit pour que « 2 nouvelles sonneries » tienne dans les 240 points du
+        // cadran sans deborder de la partie ronde visible.
+        textSize = 14f
         isFakeBoldText = true
     }
 

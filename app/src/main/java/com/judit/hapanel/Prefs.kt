@@ -382,6 +382,17 @@ class Prefs(context: Context) {
         get() = sp.getBoolean(KEY_HISTORY_RECYCLE, false)
         set(v) = sp.edit().putBoolean(KEY_HISTORY_RECYCLE, v).apply()
 
+    /**
+     * Le nom de la derniere capture consultee, ou vide si on n'a jamais regarde.
+     *
+     * Un nom et non une date : celui d'une capture encode deja l'instant, et se compare
+     * donc directement. Surtout, il reste juste apres une copie ou une restauration, la
+     * ou les dates de fichier repartent a neuf.
+     */
+    var historySeenMarker: String
+        get() = sp.getString(KEY_HISTORY_SEEN, "") ?: ""
+        set(v) = sp.edit().putString(KEY_HISTORY_SEEN, v).apply()
+
     /** Ou ranger les captures. Reglable, pour pointer une carte SD le cas echeant. */
     var historyFolder: String
         get() = sp.getString(KEY_HISTORY_FOLDER, DoorbellHistory.FOLDER)
@@ -465,6 +476,7 @@ class Prefs(context: Context) {
         const val KEY_HISTORY_MAX = "history_max"
         const val KEY_HISTORY_FOLDER = "history_folder"
         const val KEY_HISTORY_RECYCLE = "history_recycle"
+        const val KEY_HISTORY_SEEN = "history_seen"
         const val KEY_SHARE = "file_share"
         const val KEY_SHARE_PORT = "file_share_port"
         const val KEY_SHARE_PASSWORD = "file_share_password"
