@@ -782,6 +782,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             // un message fugace passerait inapercu, personne n'etant devant le panneau au
             // moment ou l'on sonne.
             runOnUiThread { showHistoryAlert(resultat is DoorbellHistory.Result.StorageFull) }
+
+            // La pastille parait dans la seconde, et non au prochain comptage.
+            if (resultat is DoorbellHistory.Result.Saved) refreshKnobDoorbells(immediat = true)
         }
     }
 
@@ -1041,13 +1044,17 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * seconde, et compter des fichiers a cette cadence userait le processeur pour une
      * information qui bouge deux fois par jour.
      */
-    private fun refreshKnobDoorbells() {
+    private fun refreshKnobDoorbells(immediat: Boolean = false) {
         if (!prefs.historyEnabled) {
             knob.doorbellNotice = ""
             return
         }
+        // L'intervalle epargne une lecture de dossier a chaque seconde, mais il ne doit
+        // pas retarder l'essentiel : une sonnerie qui vient d'etre enregistree passe
+        // devant. Attendre la minute revenait a annoncer un visiteur une fois qu'il
+        // etait reparti.
         val maintenant = System.currentTimeMillis()
-        if (maintenant - lastDoorbellCount < DOORBELL_COUNT_INTERVAL_MS) return
+        if (!immediat && maintenant - lastDoorbellCount < DOORBELL_COUNT_INTERVAL_MS) return
         lastDoorbellCount = maintenant
 
         // Les non-consultees, et non les captures du jour : la pastille est une
