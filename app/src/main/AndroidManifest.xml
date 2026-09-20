@@ -89,6 +89,14 @@
             android:name=".FileShareService"
             android:exported="false" />
 
+        <!-- Mes applications : lancer, installer, desinstaller depuis le panneau. -->
+        <activity
+            android:name=".AppsActivity"
+            android:exported="false"
+            android:label="@string/apps_title"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
         <!-- Historique des coups de sonnette : une capture horodatee par sonnerie. -->
         <activity
             android:name=".HistoryActivity"

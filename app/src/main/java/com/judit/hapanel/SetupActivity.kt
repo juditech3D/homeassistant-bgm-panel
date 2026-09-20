@@ -494,6 +494,10 @@ class SetupActivity : AppCompatActivity() {
         // musique : c'est donc elle qui dit si le son part bien vers l'enceinte Bluetooth.
         // Les fonds : ecran de veille d'un cote, tableau de bord de l'autre, mais la
         // meme grille de vignettes -- seule la destination change.
+        findViewById<Button>(R.id.open_apps).setOnClickListener {
+            AppsActivity.open(this)
+        }
+
         findViewById<Button>(R.id.history_open).setOnClickListener {
             HistoryActivity.open(this)
         }

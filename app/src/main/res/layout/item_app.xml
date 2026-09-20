@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Une application de la grille.
+
+    La mention « système » se lit sous le nom plutôt que sur l'icône : elle explique
+    pourquoi l'appui long ne propose pas de désinstaller, et n'a pas à masquer le seul
+    élément qui permette de reconnaître l'application d'un coup d'œil.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="8dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/app_icon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:contentDescription="@string/apps_title" />
+
+    <TextView
+        android:id="@+id/app_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="@color/text_primary"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/app_system"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/apps_system"
+        android:textColor="@color/text_secondary"
+        android:textSize="9sp"
+        android:visibility="gone" />
+</LinearLayout>

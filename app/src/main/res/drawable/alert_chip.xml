@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pastille qui doit se voir : sonnerie du jour, sélection à supprimer.
+
+    Fond ambré plein, texte sombre par-dessus. C'est l'inverse du reste de l'interface,
+    et c'est voulu : au milieu d'un écran noir, une tache de couleur attire l'œil là où
+    une pastille sombre de plus se fondrait dans le décor.
+
+    Elle ne réutilise pas `room_chip`, dont le fond au repos est sombre : le texte
+    sombre qu'on y posait s'y trouvait noir sur noir, donc illisible.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="@color/domain_light" />
+</shape>

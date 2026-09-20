@@ -336,4 +336,22 @@
     <string name="history_test">TEST</string>
     <string name="history_all_days">All days</string>
     <string name="history_delete_tests">Delete the tests</string>
+    <!-- My apps -->
+    <string name="apps_title">My apps</string>
+    <string name="apps_open_button">My apps…</string>
+    <string name="apps_help">Tap to open. Long press for the Android page, or to uninstall. System apps cannot be uninstalled; their page lets you disable them.</string>
+    <string name="apps_loading">Listing the apps…</string>
+    <string name="apps_count">%1$d apps, %2$d of them installed</string>
+    <string name="apps_system">system</string>
+    <string name="apps_open">Open</string>
+    <string name="apps_info">Android page</string>
+    <string name="apps_uninstall">Uninstall…</string>
+    <string name="apps_install">Install an APK…</string>
+    <string name="apps_no_apk">No .apk file found.
+
+Drop one into %1$s over the network share, then come back here.</string>
+    <string name="apps_install_failed">Could not install: %1$s</string>
+    <string name="apps_cannot_launch">This app offers no screen to open.</string>
+    <string name="apps_no_settings">The Android app page is unavailable on this panel.</string>
+    <string name="apps_no_uninstall">Uninstalling is unavailable on this panel.</string>
 </resources>

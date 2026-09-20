@@ -332,4 +332,22 @@
     <string name="history_test">TEST</string>
     <string name="history_all_days">Tous les jours</string>
     <string name="history_delete_tests">Effacer les tests</string>
+    <!-- Mes applications -->
+    <string name="apps_title">Mes applications</string>
+    <string name="apps_open_button">Mes applications…</string>
+    <string name="apps_help">Appui : ouvrir. Appui long : fiche Android, ou désinstaller. Les applications du système ne se désinstallent pas ; leur fiche permet de les désactiver.</string>
+    <string name="apps_loading">Inventaire des applications…</string>
+    <string name="apps_count">%1$d applications, dont %2$d installées</string>
+    <string name="apps_system">système</string>
+    <string name="apps_open">Ouvrir</string>
+    <string name="apps_info">Fiche Android</string>
+    <string name="apps_uninstall">Désinstaller…</string>
+    <string name="apps_install">Installer un APK…</string>
+    <string name="apps_no_apk">Aucun fichier .apk trouvé.
+
+Déposez-en un dans %1$s, par le partage réseau, puis revenez ici.</string>
+    <string name="apps_install_failed">Installation impossible : %1$s</string>
+    <string name="apps_cannot_launch">Cette application ne propose pas d\'écran à ouvrir.</string>
+    <string name="apps_no_settings">Fiche Android indisponible sur ce panneau.</string>
+    <string name="apps_no_uninstall">Désinstallation indisponible sur ce panneau.</string>
 </resources>

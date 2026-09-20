@@ -50,7 +50,7 @@
                 android:paddingEnd="12dp"
                 android:paddingTop="6dp"
                 android:paddingBottom="6dp"
-                android:background="@drawable/room_chip"
+                android:background="@drawable/alert_chip"
                 android:textColor="@color/background"
                 android:textSize="12sp"
                 android:textStyle="bold"

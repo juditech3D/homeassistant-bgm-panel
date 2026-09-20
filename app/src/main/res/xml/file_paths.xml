@@ -8,4 +8,11 @@
 -->
 <paths>
     <cache-path name="mises-a-jour" path="." />
+
+    <!--
+        Les APK deposes par le partage reseau, que « Mes applications » propose
+        d'installer. Meme raison que ci-dessus : l'installateur d'Android lit le fichier
+        sous une autre identite, et une URI « file:// » leve FileUriExposedException.
+    -->
+    <external-path name="applications" path="HAPanel/applications/" />
 </paths>

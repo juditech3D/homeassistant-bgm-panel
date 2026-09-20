@@ -177,6 +177,20 @@
                     android:text="@string/launcher_release" />
             </LinearLayout>
 
+            <!--
+                « Mes applications » vit ici plutot qu'ailleurs : une fois HA Panel
+                devenu l'ecran d'accueil, c'est le seul chemin qui reste vers le reste
+                du panneau, et c'est la section ou l'on vient quand on cherche
+                justement a en sortir.
+            -->
+            <Button
+                android:id="@+id/open_apps"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/apps_open_button"
+                android:textSize="12sp" />
+
             <TextView
                 android:id="@+id/launcher_state"
                 android:layout_width="match_parent"

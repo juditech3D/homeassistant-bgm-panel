@@ -814,6 +814,15 @@ load();
                     "Le panneau recoit aussi la musique par Home Assistant (DLNA) et par\n" +
                     "Bluetooth : ce dossier ne sert que pour de l'audio garde en local.\n"
                 ),
+            "applications" to (
+                "A DEPOSER ICI - applications a installer (apk).txt" to
+                    "Fichiers APK a installer sur le panneau.\n\n" +
+                    "Format accepte : apk.\n\n" +
+                    "Une fois depose, installez-le depuis le panneau :\n" +
+                    "Reglages > Mes applications > Installer un APK.\n\n" +
+                    "L'installation passe par l'ecran d'Android, qui nomme\n" +
+                    "l'application et demande confirmation.\n"
+                ),
             "historique" to (
                 "NE RIEN DEPOSER ICI - captures des coups de sonnette (jpg).txt" to
                     "Captures enregistrees automatiquement a chaque coup de sonnette.\n\n" +
@@ -829,7 +838,11 @@ load();
         private val EXTENSIONS = setOf(
             "jpg", "jpeg", "png", "webp", "gif",
             "mp3", "wav", "ogg", "flac", "m4a",
-            "mp4"
+            "mp4",
+            // Depose pour etre installe depuis « Mes applications ». L'installation
+            // reste soumise a l'ecran de confirmation d'Android : deposer un fichier
+            // n'installe rien.
+            "apk"
         )
 
         /**
