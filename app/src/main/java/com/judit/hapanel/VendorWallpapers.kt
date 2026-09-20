@@ -73,7 +73,7 @@ object VendorWallpapers {
         val chemin = apkPath(context) ?: return emptyList()
         return try {
             ZipFile(chemin).use { zip ->
-                zip.entries().toList()
+                val retenus = zip.entries().toList()
                     .filter { retenue(it) }
                     .mapNotNull { entree ->
                         val taille = dimensions(zip, entree) ?: return@mapNotNull null
@@ -82,13 +82,92 @@ object VendorWallpapers {
                         if (largeur >= 800 && rapport in 1.4f..2.1f) entree.name else null
                     }
                     .sorted()
-                    .mapIndexed { i, nom -> Item(nom, i) }
+
+                sansDoublons(zip, retenus).mapIndexed { i, nom -> Item(nom, i) }
             }
         } catch (e: Exception) {
             Log.w(TAG, "archive du constructeur illisible : ${e.message}")
             emptyList()
         }
     }
+
+    /**
+     * Ecarte les images qui se ressemblent au point d'etre la meme.
+     *
+     * L'application d'origine sert plusieurs gammes de panneaux, et le meme cliche y
+     * figure sous plusieurs noms -- `bg_02` et `bg_new_03` sont la meme photo de bord de
+     * mer, a deux encodages differents. La grille les montrait donc deux fois, sous deux
+     * numeros, ce qui donne a croire qu'un fond s'est applique a deux endroits.
+     *
+     * Ni la taille du fichier ni son CRC ne les rapprochent, justement parce que les
+     * encodages different. La comparaison se fait donc sur l'image elle-meme, reduite a
+     * une empreinte de 64 bits : chaque pixel d'une vignette de 8x8 en niveaux de gris
+     * vaut un bit, selon qu'il est plus clair ou plus sombre que la moyenne. Deux
+     * encodages d'une meme photo donnent alors des empreintes quasi identiques, la ou
+     * deux photos distinctes s'eloignent largement.
+     */
+    private fun sansDoublons(zip: ZipFile, noms: List<String>): List<String> {
+        val gardes = ArrayList<String>(noms.size)
+        val empreintes = ArrayList<Long>(noms.size)
+        for (nom in noms) {
+            val entree = zip.getEntry(nom) ?: continue
+            val empreinte = fingerprint(zip, entree)
+            if (empreinte == null) {
+                // Pas d'empreinte : on garde, plutot que d'ecarter une image lisible.
+                gardes.add(nom)
+                continue
+            }
+            val deja = empreintes.any { distance(it, empreinte) <= TOLERANCE }
+            if (deja) {
+                Log.i(TAG, "doublon visuel ecarte : $nom")
+            } else {
+                gardes.add(nom)
+                empreintes.add(empreinte)
+            }
+        }
+        return gardes
+    }
+
+    /** L'empreinte moyenne de l'image, sur 64 bits. */
+    private fun fingerprint(zip: ZipFile, entree: ZipEntry): Long? {
+        val (largeur, _) = dimensions(zip, entree) ?: return null
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = echelle(largeur, 32)
+            inPreferredConfig = Bitmap.Config.RGB_565
+        }
+        val image = zip.getInputStream(entree).use {
+            BitmapFactory.decodeStream(it, null, options)
+        } ?: return null
+
+        val petite = Bitmap.createScaledBitmap(image, 8, 8, true)
+        image.recycle()
+
+        val gris = IntArray(64)
+        var somme = 0
+        for (y in 0 until 8) {
+            for (x in 0 until 8) {
+                val p = petite.getPixel(x, y)
+                // Ponderation perceptuelle usuelle : l'oeil ne pese pas les trois
+                // composantes de la meme facon.
+                val v = (((p shr 16) and 0xFF) * 299 +
+                    ((p shr 8) and 0xFF) * 587 +
+                    (p and 0xFF) * 114) / 1000
+                gris[y * 8 + x] = v
+                somme += v
+            }
+        }
+        petite.recycle()
+
+        val moyenne = somme / 64
+        var empreinte = 0L
+        for (i in 0 until 64) {
+            if (gris[i] >= moyenne) empreinte = empreinte or (1L shl i)
+        }
+        return empreinte
+    }
+
+    /** Le nombre de bits qui different entre deux empreintes. */
+    private fun distance(a: Long, b: Long): Int = java.lang.Long.bitCount(a xor b)
 
     /** Une vignette, décodée à la taille demandée sans charger l'image entière. */
     fun thumbnail(context: Context, item: Item, largeurCible: Int): Bitmap? {
@@ -181,6 +260,15 @@ object VendorWallpapers {
     private val EXCLUS = listOf(
         "_small", "cover", "dialog", "volume", "item", "icon", "_ui", "player", "top_bg"
     )
+
+    /**
+     * Ecart maximal, en bits, en deca duquel deux images sont tenues pour la meme.
+     *
+     * Zero n'irait pas : deux encodages d'une meme photo different de quelques bits.
+     * Trop large ecarterait des photos distinctes mais de composition voisine -- deux
+     * couchers de soleil, par exemple. Cinq separe proprement les cas rencontres ici.
+     */
+    private const val TOLERANCE = 5
 
     private const val TAG = "HaPanelWallpaper"
 }

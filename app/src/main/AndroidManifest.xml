@@ -24,6 +24,15 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Mise à jour par le réseau. Le panneau étant encastré dans une boîte électrique,
          le démonter pour brancher un câble USB n'est pas envisageable à chaque version. -->
+    <!--
+        Acces au stockage partage : les carillons, les photos du diaporama et les fonds
+        vivent dans /sdcard/HAPanel, et le partage reseau y depose ce qu'on lui envoie.
+        Sans cela ces dossiers restent invisibles a l'application, et les listes
+        apparaissent vides sans que rien ne signale pourquoi.
+    -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
@@ -71,6 +80,15 @@
             filaire ne répond : c'est alors le seul moyen de reconnecter le panneau sans
             passer par un câble et ADB.
         -->
+        <!--
+            Partage des fichiers sur le reseau local. En service de premier plan : un
+            envoi de plusieurs megaoctets ne doit pas etre interrompu parce qu'Android
+            a decide de faire le menage pendant qu'on regardait ailleurs.
+        -->
+        <service
+            android:name=".FileShareService"
+            android:exported="false" />
+
         <!-- Choix du fond : ecran de veille et tableau de bord, meme grille. -->
         <activity
             android:name=".WallpaperPickerActivity"

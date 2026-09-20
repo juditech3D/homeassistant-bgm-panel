@@ -287,4 +287,23 @@
     <string name="wallpaper_link_not_media">Ce lien renvoie du %1$s, ni image ni vidéo</string>
     <string name="wallpaper_downloading">Téléchargement…</string>
     <string name="wallpaper_vendor_notice">Les fonds proposés ici sont ceux de l\'application d\'origine, déjà présents sur le panneau. Ils appartiennent au fabricant : ils sont lus sur l\'appareil, jamais redistribués.</string>
+    <string name="wallpaper_saver_moving_only">L\'écran de veille n\'accepte que ce qui bouge : fond animé, diaporama de photos, ou vidéo. Une image immobile marquerait la dalle.</string>
+    <!-- Partage reseau des fichiers -->
+    <string name="share_enable">Partager les fichiers du panneau sur le réseau</string>
+    <string name="share_port">Port du partage</string>
+    <string name="share_password">Mot de passe (facultatif)</string>
+    <string name="share_help">Ouvre une page web pour déposer photos et musique sans démonter le panneau. Seul le dossier HAPanel est partagé. Sans mot de passe, tout le réseau local peut y écrire ; échange non chiffré, à réserver au réseau local.</string>
+    <string name="share_address">Partage actif : http://%1$s:%2$d/</string>
+    <string name="share_channel">Partage de fichiers</string>
+    <string name="share_running">Partage de fichiers actif</string>
+    <string name="share_page_title">Fichiers du panneau</string>
+    <string name="share_drop">Déposez vos fichiers ici</string>
+    <string name="share_browse">Parcourir…</string>
+    <string name="share_delete">Supprimer</string>
+    <!-- Libelles permanents : un hint s'efface des qu'un champ porte une valeur -->
+    <string name="label_saver_delay">Écran de veille après (secondes, 0 = jamais)</string>
+    <string name="label_screen_timeout">Écran éteint après (secondes, 0 = jamais)</string>
+    <string name="label_brightness">Luminosité de l\'écran (5 à 100 %)</string>
+    <string name="label_photo_folder">Dossier des photos du diaporama</string>
+    <string name="label_wake">L\'écran se rallume au toucher, ou d\'une pression sur le bouton rotatif.</string>
 </resources>

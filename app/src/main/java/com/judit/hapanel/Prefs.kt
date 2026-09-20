@@ -60,8 +60,17 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_LANGUAGE, "systeme") ?: "systeme"
         set(v) = sp.edit().putString(KEY_LANGUAGE, v).apply()
 
+    /**
+     * `anime`, `photos` ou `video`.
+     *
+     * `image` a existe un temps -- une image fixe du constructeur en guise de veille --
+     * et se retrouve donc dans des reglages enregistres. Elle est ramenee a `anime` a la
+     * lecture : une image immobile des heures durant marque la dalle, ce qui est
+     * precisement ce qu'un ecran de veille doit eviter.
+     */
     var screensaverMode: String
-        get() = sp.getString(KEY_SAVER_MODE, "anime") ?: "anime"
+        get() = (sp.getString(KEY_SAVER_MODE, "anime") ?: "anime")
+            .let { if (it == "image") "anime" else it }
         set(v) = sp.edit().putString(KEY_SAVER_MODE, v).apply()
 
     // ------------------------------------------------------------ fonctionnalités
@@ -314,6 +323,25 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_SAVER_IMAGE_SRC, "") ?: ""
         set(v) = sp.edit().putString(KEY_SAVER_IMAGE_SRC, v).apply()
 
+    /**
+     * Partage des fichiers du panneau sur le reseau local, par une page web.
+     *
+     * Eteint par defaut : le service ecrit des fichiers sur l'appareil, ce qui doit
+     * rester un choix explicite et non un etat subi.
+     */
+    var fileShareEnabled: Boolean
+        get() = sp.getBoolean(KEY_SHARE, false)
+        set(v) = sp.edit().putBoolean(KEY_SHARE, v).apply()
+
+    var fileSharePort: Int
+        get() = sp.getInt(KEY_SHARE_PORT, 8080)
+        set(v) = sp.edit().putInt(KEY_SHARE_PORT, v.coerceIn(1024, 65535)).apply()
+
+    /** Vide = partage ouvert a tout le reseau local. Voir [FileShareService]. */
+    var fileSharePassword: String
+        get() = sp.getString(KEY_SHARE_PASSWORD, "") ?: ""
+        set(v) = sp.edit().putString(KEY_SHARE_PASSWORD, v).apply()
+
     var photoFolder: String
         get() = sp.getString(KEY_PHOTO_FOLDER, ScreensaverView.DEFAULT_FOLDER)
             ?: ScreensaverView.DEFAULT_FOLDER
@@ -366,6 +394,9 @@ class Prefs(context: Context) {
         const val KEY_SAVER_MODE = "screensaver_mode"
         const val KEY_LANGUAGE = "language"
         const val KEY_PHOTO_FOLDER = "photo_folder"
+        const val KEY_SHARE = "file_share"
+        const val KEY_SHARE_PORT = "file_share_port"
+        const val KEY_SHARE_PASSWORD = "file_share_password"
         const val KEY_DASH_BG = "dashboard_background"
         const val KEY_SAVER_IMAGE = "screensaver_image"
         const val KEY_DASH_BG_SRC = "dashboard_background_source"

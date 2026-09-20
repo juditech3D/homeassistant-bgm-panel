@@ -35,18 +35,16 @@ class ScreensaverView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     /**
-     * [IMAGE] montre une image fixe, avec le meme lent mouvement que le diaporama : sur
-     * un ecran allume des heures, une image parfaitement immobile marque la dalle.
-     * La video, elle, ne passe pas par cette vue -- un Canvas ne lit pas de flux -- mais
-     * par un lecteur pose a cote, dans le tableau de bord.
+     * Rien d'immobile ici, volontairement : une image fixe affichee des heures marque la
+     * dalle. Le diaporama change de photo, l'animation ne se repete pas, et la video --
+     * qui ne passe pas par cette vue, un Canvas ne lisant pas de flux, mais par un
+     * lecteur pose a cote dans le tableau de bord -- tourne en boucle.
      */
-    enum class Mode { PHOTOS, ANIMATED, IMAGE }
+    enum class Mode { PHOTOS, ANIMATED }
 
     var mode: Mode = Mode.ANIMATED
     var photoFolder: String = DEFAULT_FOLDER
 
-    /** Le fichier a montrer en mode [Mode.IMAGE]. */
-    var imagePath: String = ""
 
     // ------------------------------------------------------------------ photos
 
@@ -91,19 +89,6 @@ class ScreensaverView @JvmOverloads constructor(
                 nextPhoto()
             }
             Mode.ANIMATED -> if (particles.isEmpty()) seedParticles()
-            Mode.IMAGE -> {
-                val fichier = File(imagePath)
-                // Une image effacee entre-temps ne doit pas donner un ecran noir : on
-                // retombe sur l'animation, qui ne depend de rien.
-                if (fichier.isFile) {
-                    photos = listOf(fichier)
-                    photoIndex = 0
-                    nextPhoto()
-                } else {
-                    mode = Mode.ANIMATED
-                    if (particles.isEmpty()) seedParticles()
-                }
-            }
         }
         postInvalidateOnAnimation()
     }
@@ -118,7 +103,7 @@ class ScreensaverView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         if (visibility != VISIBLE) return
         when (mode) {
-            Mode.PHOTOS, Mode.IMAGE -> drawPhotos(canvas)
+            Mode.PHOTOS -> drawPhotos(canvas)
             Mode.ANIMATED -> drawAnimated(canvas)
         }
         postInvalidateOnAnimation()

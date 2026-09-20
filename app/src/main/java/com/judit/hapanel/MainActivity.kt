@@ -299,6 +299,21 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         if (prefs.assistantEnabled && assistant?.hasPermission() == false) {
             requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), REQ_MIC)
         }
+
+        // Le stockage partage porte les carillons, les photos du diaporama et ce que le
+        // partage reseau depose. Demande sans condition : ces trois usages sont au coeur
+        // de l'application, et un refus se traduit par des listes vides.
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ),
+                REQ_STORAGE
+            )
+        }
         // Un endormissement ou un réveil doit remonter tout de suite, pas au prochain
         // cycle de publication.
         screen.onSleepChanged = { hardware?.publishNow() }
@@ -318,6 +333,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             ZigbeeBridgeService.start(this)
         } else {
             ZigbeeBridgeService.stop(this)
+        }
+
+        // Meme raison pour le partage de fichiers : un envoi en cours ne doit pas
+        // s'interrompre parce que l'ecran s'est mis en veille pendant le transfert.
+        if (prefs.fileShareEnabled) {
+            FileShareService.start(this)
+        } else {
+            FileShareService.stop(this)
         }
     }
 
@@ -741,10 +764,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         // L'ecran de veille.
         screensaver.photoFolder = prefs.photoFolder
-        screensaver.imagePath = prefs.screensaverImage
         screensaver.mode = when (prefs.screensaverMode) {
             "photos" -> ScreensaverView.Mode.PHOTOS
-            "image" -> ScreensaverView.Mode.IMAGE
             else -> ScreensaverView.Mode.ANIMATED
         }
     }
@@ -1368,6 +1389,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         /** Délai après lequel on refait confiance au volume relu du matériel. */
         const val PANEL_VOLUME_SETTLE_MS = 1_500L
         const val REQ_MIC = 101
+        const val REQ_STORAGE = 102
 
         /** Demande de rejouer la séquence de sonnerie au démarrage, depuis les réglages. */
         /**

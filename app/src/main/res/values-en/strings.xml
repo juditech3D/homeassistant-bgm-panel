@@ -291,4 +291,23 @@
     <string name="wallpaper_link_not_media">That link returns %1$s, neither image nor video</string>
     <string name="wallpaper_downloading">Downloading…</string>
     <string name="wallpaper_vendor_notice">The wallpapers offered here are the stock app\'s own, already present on the panel. They belong to the manufacturer: they are read on the device, never redistributed.</string>
+    <string name="wallpaper_saver_moving_only">The screensaver only accepts what moves: animated background, photo slideshow, or video. A still image would burn into the panel.</string>
+    <!-- Network file share -->
+    <string name="share_enable">Share the panel\'s files over the network</string>
+    <string name="share_port">Share port</string>
+    <string name="share_password">Password (optional)</string>
+    <string name="share_help">Opens a web page for dropping photos and music in without unmounting the panel. Only the HAPanel folder is shared. With no password, anyone on the local network can write to it; the exchange is unencrypted, so keep it to the local network.</string>
+    <string name="share_address">Share running: http://%1$s:%2$d/</string>
+    <string name="share_channel">File share</string>
+    <string name="share_running">File share running</string>
+    <string name="share_page_title">Panel files</string>
+    <string name="share_drop">Drop your files here</string>
+    <string name="share_browse">Browse…</string>
+    <string name="share_delete">Delete</string>
+    <!-- Permanent labels: a hint vanishes as soon as a field holds a value -->
+    <string name="label_saver_delay">Screensaver after (seconds, 0 = never)</string>
+    <string name="label_screen_timeout">Screen off after (seconds, 0 = never)</string>
+    <string name="label_brightness">Screen brightness (5 to 100 %)</string>
+    <string name="label_photo_folder">Folder holding the slideshow photos</string>
+    <string name="label_wake">The screen comes back on at a touch, or at a press on the knob.</string>
 </resources>

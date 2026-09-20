@@ -38,6 +38,10 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var wakeProximityField: CheckBox
     private lateinit var saverDelayField: EditText
     private lateinit var photoFolderField: EditText
+    private lateinit var fileShareField: CheckBox
+    private lateinit var fileSharePortField: EditText
+    private lateinit var fileSharePasswordField: EditText
+    private lateinit var fileShareState: TextView
     private lateinit var languageField: Spinner
     private lateinit var chimeChoiceField: Spinner
     private lateinit var chimeOnDoorbellField: CheckBox
@@ -152,6 +156,10 @@ class SetupActivity : AppCompatActivity() {
         wakeProximityField = findViewById(R.id.wake_proximity)
         saverDelayField = findViewById(R.id.screensaver_delay)
         photoFolderField = findViewById(R.id.photo_folder)
+        fileShareField = findViewById(R.id.file_share)
+        fileSharePortField = findViewById(R.id.file_share_port)
+        fileSharePasswordField = findViewById(R.id.file_share_password)
+        fileShareState = findViewById(R.id.file_share_state)
         languageField = findViewById(R.id.language_choice)
         chimeChoiceField = findViewById(R.id.chime_choice)
         chimeOnDoorbellField = findViewById(R.id.chime_on_doorbell)
@@ -209,6 +217,11 @@ class SetupActivity : AppCompatActivity() {
         go2rtcField.setText(
             prefs.go2rtcUrl.ifEmpty { "http://${prefs.host}:1984" }
         )
+        fileShareField.isChecked = prefs.fileShareEnabled
+        fileSharePortField.setText(prefs.fileSharePort.toString())
+        fileSharePasswordField.setText(prefs.fileSharePassword)
+        showShareAddress()
+
         loadCameras()
 
         languageField.adapter = ArrayAdapter(
@@ -426,6 +439,22 @@ class SetupActivity : AppCompatActivity() {
     }
 
     /** Enregistre tous les réglages. Retourne false si la connexion est incomplète. */
+    /**
+     * Rappelle l'adresse a taper dans un navigateur, plutot que de laisser chercher.
+     *
+     * C'est l'adresse du panneau vue du reseau : la meme que celle de l'ADB reseau, et
+     * celle que la notification du service affiche.
+     */
+    private fun showShareAddress() {
+        if (!prefs.fileShareEnabled) {
+            fileShareState.setText(R.string.share_help)
+            return
+        }
+        fileShareState.text = getString(
+            R.string.share_address, FileShareService.localAddress(), prefs.fileSharePort
+        )
+    }
+
     private fun saveAll(): Boolean {
         val host = hostField.text.toString().trim()
         val token = tokenField.text.toString().trim()
@@ -440,6 +469,12 @@ class SetupActivity : AppCompatActivity() {
         prefs.pinned = pinnedField.text.toString()
         prefs.useTls = tlsField.isChecked
         prefs.publishSensors = publishField.isChecked
+        prefs.fileShareEnabled = fileShareField.isChecked
+        prefs.fileSharePort = fileSharePortField.text.toString().toIntOrNull() ?: 8080
+        prefs.fileSharePassword = fileSharePasswordField.text.toString()
+        // Le service suit le reglage immediatement : attendre le prochain demarrage du
+        // panneau pour qu'une case cochee prenne effet serait deroutant.
+        if (prefs.fileShareEnabled) FileShareService.start(this) else FileShareService.stop(this)
         prefs.wakeOnProximity = wakeProximityField.isChecked
         prefs.chimeOnDoorbell = chimeOnDoorbellField.isChecked
         prefs.assistantEnabled = assistantEnabledField.isChecked

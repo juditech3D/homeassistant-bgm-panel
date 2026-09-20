@@ -98,7 +98,12 @@ class WallpaperPickerActivity : AppCompatActivity() {
         } else {
             listOf(Choice.Animated, Choice.Photos)
         }
-        val perso = customFile().takeIf { it.exists() }?.let { listOf(Choice.Custom(it)) }.orEmpty()
+        // Une image telechargee ne sert qu'au tableau de bord ; la veille, elle, n'admet
+        // que ce qui bouge.
+        val perso = customFile()
+            .takeIf { it.exists() && (forDashboard != isVideo(it)) }
+            ?.let { listOf(Choice.Custom(it)) }
+            .orEmpty()
         return fixes + perso + listOf(Choice.Link)
     }
 
@@ -114,6 +119,12 @@ class WallpaperPickerActivity : AppCompatActivity() {
      * dimensions : c'est rapide, mais pas au point de tenir sur le fil d'affichage.
      */
     private fun loadVendorWallpapers() {
+        // Les fonds du constructeur sont des images fixes : ils habillent le tableau de
+        // bord, jamais la veille, ou l'immobilite marquerait la dalle.
+        if (!forDashboard) {
+            state.setText(R.string.wallpaper_saver_moving_only)
+            return
+        }
         state.setText(R.string.wallpaper_loading)
         thread(isDaemon = true) {
             val items = VendorWallpapers.list(this)
@@ -159,6 +170,9 @@ class WallpaperPickerActivity : AppCompatActivity() {
                 done()
             }
 
+            // Inatteignable : la grille de la veille ne propose aucun fond du
+            // constructeur. Laisse en place pour que le `when` reste exhaustif.
+
             is Choice.Vendor -> {
                 state.setText(R.string.wallpaper_copying)
                 thread(isDaemon = true) {
@@ -185,11 +199,16 @@ class WallpaperPickerActivity : AppCompatActivity() {
         if (forDashboard) {
             prefs.dashboardBackground = file.absolutePath
             prefs.dashboardBackgroundSource = source
-        } else {
-            prefs.screensaverImage = file.absolutePath
-            prefs.screensaverImageSource = source
-            prefs.screensaverMode = if (isVideo(file)) "video" else "image"
+            return
         }
+        // Cote veille, seule une video est admise : une photo y resterait immobile.
+        if (!isVideo(file)) {
+            Toast.makeText(this, R.string.wallpaper_saver_moving_only, Toast.LENGTH_LONG).show()
+            return
+        }
+        prefs.screensaverImage = file.absolutePath
+        prefs.screensaverImageSource = source
+        prefs.screensaverMode = "video"
     }
 
     /** Ce qui est retenu aujourd'hui : entree d'archive, `lien`, ou rien. */
