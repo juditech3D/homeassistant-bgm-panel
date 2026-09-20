@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Voile coloré posé sur une tuile de mesure : sa teinte suit la température ou
+    l'humidité. Blanc ici, la couleur réelle étant appliquée à l'exécution par teinte,
+    ce qui évite un fichier par nuance.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="20dp" />
+    <solid android:color="#FFFFFFFF" />
+</shape>

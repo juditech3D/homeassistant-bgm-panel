@@ -23,6 +23,13 @@
     android:clipToPadding="true"
     android:background="@drawable/tile_background">
 
+    <View
+        android:id="@+id/tile_tint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/tile_tint"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tile_watermark"
         android:layout_width="wrap_content"
@@ -74,6 +81,21 @@
             android:text="Entité"
             android:textColor="@color/tile_name"
             android:textSize="12sp" />
+
+        <!--
+            Seconde mesure de la même sonde — l'humidité sous la température. Masquée
+            pour tout le reste : la plupart des entités n'ont qu'une valeur.
+        -->
+        <TextView
+            android:id="@+id/tile_secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <!--
             Niveau de l'entité, quand elle en a un. Masquée pour les entités binaires :

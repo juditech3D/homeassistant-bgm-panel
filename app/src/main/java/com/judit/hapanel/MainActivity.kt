@@ -155,7 +155,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         adapter = TileAdapter(
             onTap = { position -> onTileTapped(position) },
-            onLongPress = { position -> chooseAreaFor(position) }
+            onLongPress = { position -> chooseAreaFor(position) },
+            onRoomTap = { piece, membres -> toggleRoom(piece, membres) }
         )
         gridLayout = GridLayoutManager(this, TILE_COLUMNS)
         // Un intertitre de piece occupe toute la largeur ; une tuile, une colonne.
@@ -239,6 +240,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             }
         }
         audio = AudioController(this)
+        // Les commandes du bandeau sont branchees avant le materiel : sans ce second
+        // passage, la barre de volume resterait a zero et l'icone en sourdine, puisque
+        // le controleur audio n'existait pas encore quand elles ont ete peuplees.
+        refreshPanelControls()
         camera = findViewById<CameraView>(R.id.camera).apply {
             onTap = { stopDoorbellCamera(); screen.noteActivity() }
         }
@@ -324,12 +329,17 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             // Reparti sur deux dimensions plutot que sur une seule ligne : quatre
             // entites donnent une grille 2x2, pas quatre colonnes ecrasees contre le
             // haut de l'ecran. Les paliers sont regles pour du 1024x600.
+            // La densite suit la piece la plus fournie, pas le total : six lampes dans
+            // une meme piece doivent se serrer, sans quoi elles s'etaleraient sur trois
+            // rangees de tuiles enormes en repoussant les autres pieces hors de l'ecran.
+            val reference = maxOf(adapter.largestGroup(), 1)
             val souhaitees = when {
-                nombre <= 1 -> 1
-                nombre <= 4 -> 2
-                nombre <= 6 -> 3
-                nombre <= 12 -> 4
-                nombre <= 20 -> 5
+                reference <= 1 && nombre <= 1 -> 1
+                reference <= 2 -> 2
+                reference <= 4 -> if (nombre <= 4) 2 else 3
+                reference <= 6 -> 3
+                reference <= 12 -> 4
+                reference <= 20 -> 5
                 else -> TILE_COLUMNS
             }
             // En dessous de 150 dp de large, une tuile devient illisible a distance.
@@ -351,7 +361,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             // Plafonnee : une tuile de 400 px de haut n'a qu'un grand vide au milieu,
             // l'icone en haut et la valeur tout en bas.
             adapter.tileHeight = (hauteur / lignesVisibles).coerceIn(
-                (96 * densite).toInt(), (230 * densite).toInt()
+                (96 * densite).toInt(), (200 * densite).toInt()
             )
         }
     }
@@ -380,6 +390,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     /** Au retour du sélecteur, la liste a pu changer : on la réapplique. */
     override fun onResume() {
         super.onResume()
+        refreshPanelControls()
         if (allEntities.isNotEmpty()) applySelection()
     }
 
@@ -482,6 +493,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             return
         }
 
+        // Sur un intertitre, rien a regler : la rotation promene la selection.
+        if (knobFocus == null && adapter.selectedRoom() != null) {
+            adapter.moveSelection(direction)
+            adapter.selected.let { if (it >= 0) tiles.smoothScrollToPosition(it) }
+            refreshKnobNow()
+            return
+        }
+
         if (entity?.adjustable != null) {
             // L'encodeur émet nettement moins d'impulsions qu'il n'y a de crans :
             // sans accélération, parcourir toute la plage serait interminable.
@@ -508,7 +527,11 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     /** Appui : allume ou éteint l'entité sélectionnée. */
     private fun onPress() {
         lastInteraction = System.currentTimeMillis()
-        val entity = adapter.selectedEntity() ?: return
+
+        // Un intertitre selectionne : l'appui commande la piece entiere.
+        if (pressedOnRoom()) return
+
+        val entity = knobEntity() ?: return
 
         // Appui sur la tuile de volume : bascule la sourdine de l'amplificateur.
         if (entity.entityId == Entity.PANEL_VOLUME_ID) {
@@ -540,6 +563,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         refreshKnobNow()
     }
 
+    /** Vrai si le bouton commande une piece entiere plutot qu'une entite. */
+    private fun pressedOnRoom(): Boolean {
+        if (knobFocus != null) return false
+        val (piece, membres) = adapter.selectedRoom() ?: return false
+        toggleRoom(piece, membres)
+        refreshKnobNow()
+        return true
+    }
+
     /**
      * Toucher une tuile la sélectionne, sans changer son état — sauf pour l'assistant
      * et le mode privé, où l'on attend un effet immédiat : personne ne veut
@@ -548,6 +580,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun onTileTapped(position: Int) {
         if (position < 0) return
         lastInteraction = System.currentTimeMillis()
+
+        // Un intertitre : on l'elit, l'ecran rond montre la piece, et c'est l'appui sur
+        // le bouton rotatif qui l'allumera ou l'eteindra.
+        if (adapter.isHeader(position)) {
+            knobFocus = null
+            adapter.select(position)
+            refreshKnobNow()
+            return
+        }
         // Choisir une tuile reprend la main au bandeau : le bouton pilote de nouveau la
         // grille, faute de quoi il continuerait a regler le volume.
         knobFocus = null
@@ -784,6 +825,20 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
     private fun drawKnob() {
         val idleFor = System.currentTimeMillis() - lastInteraction
+
+        // Une piece selectionnee : l'ecran rond annonce ce que l'appui va faire.
+        val piece = if (knobFocus == null) adapter.selectedRoom() else null
+        if (piece != null && idleFor <= IDLE_TIMEOUT_MS) {
+            val allumees = piece.second.count { it.isOn }
+            knob.drawValue(
+                piece.first,
+                if (allumees > 0) "$allumees ON" else "OFF",
+                if (piece.second.isEmpty()) 0f else allumees.toFloat() / piece.second.size,
+                if (allumees > 0) ADJUST_ACCENT else SELECT_ACCENT
+            )
+            return
+        }
+
         val entity = knobEntity()
 
         if (entity == null || idleFor > IDLE_TIMEOUT_MS) {
@@ -847,7 +902,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     }
 
     private fun applySelection() {
-        val shown = selectEntities(allEntities)
+        // Les mesures d'une meme sonde sont reunies sur une seule tuile : temperature et
+        // humidite disaient deux fois le nom du meme appareil.
+        val shown = SensorMerge.merge(selectEntities(allEntities), allEntities)
         adapter.submit(shown)
         applyAreas()
         refreshWeather()
@@ -986,6 +1043,40 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         prefs.setLocalArea(entity.entityId, piece)
         applyAreas()
         applySelection()
+    }
+
+    /**
+     * Allume ou eteint toute une piece d'une tape sur son intertitre.
+     *
+     * Si quoi que ce soit est allume, on eteint tout ; sinon on allume tout. C'est plus
+     * previsible qu'une bascule entite par entite, qui laisserait la piece dans un etat
+     * melange -- exactement ce qu'on cherchait a eviter en tapant sur la piece entiere.
+     *
+     * Une seule commande pour l'ensemble : Home Assistant accepte une liste d'entites,
+     * ce qui evite autant d'allers-retours que de lampes et les allume d'un coup.
+     */
+    private fun toggleRoom(piece: String, membres: List<Entity>) {
+        if (membres.isEmpty()) return
+        lastInteraction = System.currentTimeMillis()
+
+        val allumees = membres.count { it.isOn }
+        val eteindre = allumees > 0
+        val cibles = membres.joinToString(",") { it.entityId }
+
+        client.callService(
+            "homeassistant",
+            if (eteindre) "turn_off" else "turn_on",
+            cibles
+        )
+
+        Toast.makeText(
+            this,
+            getString(
+                if (eteindre) R.string.room_all_off else R.string.room_all_on,
+                piece.lowercase().replaceFirstChar { it.uppercase() }
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun refreshWeather() {

@@ -42,6 +42,15 @@
     <string name="hint_go2rtc">Adresse go2rtc, ex. http://192.168.1.10:1984</string>
     <string name="hint_doorbell_camera_seconds">Durée d\'affichage (s)</string>
     <string name="doorbell_test">Tester la sonnerie complète (carillon + caméra)</string>
+    <!-- Ecran d'accueil -->
+    <string name="launcher_help">Par défaut, le menu du constructeur s\'affiche à chaque démarrage avant l\'application. En faisant de HA Panel l\'écran d\'accueil, le panneau démarre directement dessus. Le retour est toujours possible, et l\'application garde son icône dans le menu du constructeur.</string>
+    <string name="launcher_take">Écran d\'accueil</string>
+    <string name="launcher_release">Menu du constructeur</string>
+    <string name="launcher_is_default">HA Panel est l\'écran d\'accueil.</string>
+    <string name="launcher_is_vendor">Le menu du constructeur est l\'écran d\'accueil.</string>
+    <string name="launcher_taken">HA Panel démarrera directement.</string>
+    <string name="launcher_use_system">À choisir dans les réglages d\'Android.</string>
+
     <string name="mic_label">Micro</string>
     <string name="assistant_needs_mic">Le micro est coupé : réactive-le pour parler à l\'assistant.</string>
     <string name="feature_microphone">Micro / mode privé</string>
@@ -178,7 +187,9 @@
     <string name="status_connecting">Connexion…</string>
     <string name="status_connected">Connecté</string>
     <string name="status_disconnected">Déconnecté : %1$s</string>
-    <string name="knob_hint">Bouton : tourner = régler · appuyer = allumer/éteindre</string>
+    <string name="room_all_on">%1$s : tout allumé</string>
+    <string name="room_all_off">%1$s : tout éteint</string>
+    <string name="knob_hint">Bouton : tourner = régler · appuyer = allumer/éteindre    —    Appui long : ranger une tuile dans une pièce, ou commander la pièce entière</string>
     <string name="settings">Réglages</string>
     <string name="entities">Entités</string>
     <string name="no_entities">Aucune entité à afficher. Vérifie la sélection dans les réglages.</string>

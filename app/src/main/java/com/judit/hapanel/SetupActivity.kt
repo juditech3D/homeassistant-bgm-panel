@@ -268,6 +268,34 @@ class SetupActivity : AppCompatActivity() {
 
         // Le Wi-Fi et le Bluetooth se règlent hors de cet écran : ce sont des listes
         // vivantes, qui se rafraîchissent, et non des champs à enregistrer.
+        // Ecran d'accueil. Sans ce reglage, le menu du constructeur s'affiche a chaque
+        // demarrage avant l'application -- un battement inutile. Le retour en arriere
+        // reste possible a tout moment, et l'application garde son icone dans ce menu.
+        val etatLanceur = findViewById<TextView>(R.id.launcher_state)
+        fun montrerEtatLanceur() {
+            etatLanceur.setText(
+                if (LauncherRole.isDefault(this)) R.string.launcher_is_default
+                else R.string.launcher_is_vendor
+            )
+        }
+        montrerEtatLanceur()
+
+        findViewById<Button>(R.id.launcher_take).setOnClickListener {
+            if (LauncherRole.take(this)) {
+                montrerEtatLanceur()
+                Toast.makeText(this, R.string.launcher_taken, Toast.LENGTH_SHORT).show()
+            } else {
+                // Sans root, Android reserve ce choix a sa propre boite de dialogue.
+                Toast.makeText(this, R.string.launcher_use_system, Toast.LENGTH_LONG).show()
+                LauncherRole.openSystemChooser(this)
+            }
+        }
+
+        findViewById<Button>(R.id.launcher_release).setOnClickListener {
+            LauncherRole.release(this)
+            montrerEtatLanceur()
+        }
+
         findViewById<Button>(R.id.open_network).setOnClickListener {
             startActivity(Intent(this, NetworkActivity::class.java))
         }

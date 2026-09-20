@@ -40,6 +40,19 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!--
+                Ecran d'accueil. Sans cela, le lanceur du constructeur s'affiche a chaque
+                demarrage avec toutes ses icones, et l'application ne vient qu'apres :
+                un battement inutile sur un panneau qui n'a qu'un seul usage. Declarer
+                la categorie ne suffit pas a devenir l'accueil par defaut — il faut
+                encore le choisir, ce que proposent les reglages.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity

@@ -42,6 +42,11 @@ en vues Android classiques.
   de la ranger ailleurs, ou de créer une pièce propre au panneau — utile pour les entités
   que le serveur ne range nulle part. Ce classement local prime, et ne touche à rien côté
   serveur.
+- **Commande de pièce** : l'intertitre compte ce qui est allumé et sert de commande.
+  Le toucher l'élit — l'écran rond affiche alors la pièce entière — et l'appui sur le
+  bouton rotatif l'allume ou l'éteint. Un appui long fait la même chose au doigt.
+- **Sondes réunies** : température, humidité et batterie d'un même capteur tiennent sur
+  une seule tuile, teintée selon la mesure — du bleu au rouge selon la température.
 - **Commandes du panneau dans le bandeau** : volume à la barre, assistant vocal et mode
   privé en icônes. Toucher l'icône du volume le confie au bouton rotatif, qui l'affiche
   sur l'écran rond.

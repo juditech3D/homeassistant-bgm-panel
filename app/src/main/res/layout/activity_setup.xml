@@ -132,6 +132,40 @@
                 android:layout_marginTop="6dp"
                 android:text="@string/open_network" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/launcher_help"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/launcher_take"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/launcher_take" />
+
+                <Button
+                    android:id="@+id/launcher_release"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/launcher_release" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/launcher_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
             <CheckBox
                 android:id="@+id/wifi_fallback"
                 android:layout_width="wrap_content"
