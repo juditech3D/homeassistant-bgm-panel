@@ -62,8 +62,17 @@ class WeatherCardView @JvmOverloads constructor(
      * Reçoit l'entité météo du serveur. Retourne false s'il n'y en a pas, ce qui invite
      * l'appelant à masquer la carte.
      */
-    fun bind(entities: List<Entity>): Boolean {
-        val meteo = entities.firstOrNull { it.domain == "weather" } ?: return false
+    /**
+     * Remplit la carte. [prefere] designe l'entite voulue ; vide, on prend la premiere.
+     *
+     * Le repli sur la premiere venue compte : une entite choisie puis supprimee du
+     * serveur laisserait sinon une carte vide, sans que rien n'explique pourquoi.
+     */
+    fun bind(entities: List<Entity>, prefere: String = ""): Boolean {
+        val meteos = entities.filter { it.domain == "weather" }
+        val meteo = meteos.firstOrNull { it.entityId == prefere }
+            ?: meteos.firstOrNull()
+            ?: return false
 
         refreshDate()
 

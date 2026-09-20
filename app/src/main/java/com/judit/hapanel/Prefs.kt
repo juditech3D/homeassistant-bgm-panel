@@ -342,9 +342,33 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_SHARE_PASSWORD, "") ?: ""
         set(v) = sp.edit().putString(KEY_SHARE_PASSWORD, v).apply()
 
+    /**
+     * L'entite meteo a afficher, ou vide pour la premiere venue.
+     *
+     * Home Assistant en expose souvent plusieurs -- le domicile, une ville suivie, un
+     * fournisseur de secours. Le panneau doit montrer celle de l'endroit ou il est
+     * accroche, qui n'est pas forcement la premiere que le serveur renvoie.
+     */
+    var weatherEntity: String
+        get() = sp.getString(KEY_WEATHER, "") ?: ""
+        set(v) = sp.edit().putString(KEY_WEATHER, v).apply()
+
+    /**
+     * Le dossier des photos du diaporama.
+     *
+     * Il valait `HAPanel/fonds` jusqu'a la 1.12, qui servait aussi aux fonds d'ecran :
+     * on y voyait donc ses photos de famille defiler en veille et son fond de tableau de
+     * bord au milieu d'elles. Les deux usages ont desormais chacun leur dossier.
+     *
+     * L'ancienne valeur est ramenee a la nouvelle **a la lecture seulement** : les
+     * fichiers deja deposes ne sont pas deplaces. Rien ne dit qu'ils etaient la pour le
+     * diaporama, et deplacer sans demander des fichiers qu'on n'a pas mis soi-meme est
+     * le genre de service qu'on ne rend pas.
+     */
     var photoFolder: String
-        get() = sp.getString(KEY_PHOTO_FOLDER, ScreensaverView.DEFAULT_FOLDER)
-            ?: ScreensaverView.DEFAULT_FOLDER
+        get() = (sp.getString(KEY_PHOTO_FOLDER, ScreensaverView.DEFAULT_FOLDER)
+            ?: ScreensaverView.DEFAULT_FOLDER)
+            .let { if (it == ANCIEN_DOSSIER_PHOTOS) ScreensaverView.DEFAULT_FOLDER else it }
         set(v) = sp.edit().putString(KEY_PHOTO_FOLDER, v.trim()).apply()
 
     /**
@@ -394,6 +418,10 @@ class Prefs(context: Context) {
         const val KEY_SAVER_MODE = "screensaver_mode"
         const val KEY_LANGUAGE = "language"
         const val KEY_PHOTO_FOLDER = "photo_folder"
+
+        /** Le dossier que le diaporama partageait avec les fonds d'ecran, jusqu'a la 1.12. */
+        const val ANCIEN_DOSSIER_PHOTOS = "/sdcard/HAPanel/fonds"
+        const val KEY_WEATHER = "weather_entity"
         const val KEY_SHARE = "file_share"
         const val KEY_SHARE_PORT = "file_share_port"
         const val KEY_SHARE_PASSWORD = "file_share_password"

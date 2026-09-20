@@ -306,4 +306,9 @@
     <string name="label_brightness">Luminosité de l\'écran (5 à 100 %)</string>
     <string name="label_photo_folder">Dossier des photos du diaporama</string>
     <string name="label_wake">L\'écran se rallume au toucher, ou d\'une pression sur le bouton rotatif.</string>
+    <!-- Meteo -->
+    <string name="weather_label">Météo affichée — celle du lieu où le panneau est installé</string>
+    <string name="weather_auto">Automatique (la première du serveur)</string>
+    <string name="weather_loading">Recherche des entités météo…</string>
+    <string name="weather_none_found">Aucune entité météo sur le serveur</string>
 </resources>

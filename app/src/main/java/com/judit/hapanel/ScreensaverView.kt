@@ -288,7 +288,16 @@ class ScreensaverView @JvmOverloads constructor(
     companion object {
         private const val TAG = "Screensaver"
 
-        const val DEFAULT_FOLDER = "/sdcard/HAPanel/fonds"
+        /**
+         * Le dossier du diaporama, distinct de celui des fonds d'ecran.
+         *
+         * Les deux usages n'ont rien a voir : le diaporama fait defiler des photos
+         * personnelles pendant la veille, les fonds habillent le tableau de bord. Les
+         * melanger dans un seul dossier obligerait a choisir entre voir ses photos de
+         * famille en fond de tableau de bord, ou son fond d'ecran au milieu du
+         * diaporama.
+         */
+        const val DEFAULT_FOLDER = "/sdcard/HAPanel/diaporama"
         private val EXTENSIONS = setOf("jpg", "jpeg", "png", "webp")
 
         private const val PHOTO_DURATION_MS = 20_000L

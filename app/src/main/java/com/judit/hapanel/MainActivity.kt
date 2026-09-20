@@ -1162,7 +1162,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * d'ou le recalcul de la grille dans la foulee.
      */
     /**
-     * Affiche la carte meteo, alimentee par la premiere entite `weather` du serveur.
+     * Affiche la carte meteo, alimentee par l'entite `weather` choisie dans les reglages,
+     * ou la premiere du serveur a defaut.
      * Masquee s'il n'y en a aucune : la musique recupere alors toute la hauteur.
      */
     /**
@@ -1303,7 +1304,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
     private fun refreshWeather() {
         if (!this::weatherCard.isInitialized) return
-        weatherCard.visibility = if (weatherCard.bind(allEntities)) View.VISIBLE else View.GONE
+        weatherCard.visibility =
+            if (weatherCard.bind(allEntities, prefs.weatherEntity)) View.VISIBLE else View.GONE
     }
 
     /** Montre l'acces aux cameras des que le serveur ou go2rtc en expose une. */

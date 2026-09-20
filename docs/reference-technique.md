@@ -1046,14 +1046,31 @@ extinction à 0. Pour n'avoir que l'extinction : écran de veille à 0.
   Canvas. Volontairement sobre : 45 particules, halos par dégradé radial et **aucun
   flou**, un `BlurMaskFilter` effondrant la fluidité sur ce PX30. Aucune ressource
   externe, rien à installer.
-- **Diaporama photos** — lit un dossier du panneau, par défaut `/sdcard/HAPanel/fonds`.
+- **Diaporama photos** — lit un dossier du panneau, par défaut `/sdcard/HAPanel/diaporama`.
   Effet **Ken Burns** (zoom et translation lents, direction tirée au sort à chaque photo)
   et fondu enchaîné de 1,5 s. Une photo toutes les 20 s.
 
-Pour déposer des photos :
+Pour déposer des photos, le plus simple est le **partage réseau** (§ 12) : une page
+web, ou un lecteur réseau WebDAV dans l'Explorateur Windows. À défaut :
 ```bash
-adb -s 192.168.1.50:5555 push mes-photos/*.jpg /sdcard/HAPanel/fonds/
+adb -s 192.168.1.50:5555 push mes-photos/*.jpg /sdcard/HAPanel/diaporama/
 ```
+
+### Les dossiers du panneau
+
+`/sdcard/HAPanel/` porte un dossier par usage, créés au démarrage du partage réseau :
+
+| Dossier | Usage |
+|---|---|
+| `diaporama/` | les photos qui défilent pendant la veille |
+| `fonds/` | les images destinées au fond du tableau de bord |
+| `carillons/` | les sons de sonnette |
+| `musique/` | les morceaux à jouer localement |
+
+> Le diaporama partageait `fonds/` jusqu'à la 1.12 : on y voyait donc ses photos
+> personnelles défiler en veille **et** son fond d'écran au milieu d'elles. L'ancienne
+> valeur est ramenée à la nouvelle à la lecture du réglage ; les fichiers déjà déposés
+> ne sont **pas** déplacés — rien ne dit qu'ils étaient là pour le diaporama.
 Formats acceptés : jpg, jpeg, png, webp. Les images sont **décodées à l'échelle** avec
 `inSampleSize` et en `RGB_565` — une photo d'appareil moderne dépasserait les 50 Mo une
 fois décompressée, ce que ce panneau ne supporterait pas. Si le dossier est vide, repli

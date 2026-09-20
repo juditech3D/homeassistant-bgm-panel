@@ -42,6 +42,7 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var fileSharePortField: EditText
     private lateinit var fileSharePasswordField: EditText
     private lateinit var fileShareState: TextView
+    private lateinit var weatherField: Spinner
     private lateinit var languageField: Spinner
     private lateinit var chimeChoiceField: Spinner
     private lateinit var chimeOnDoorbellField: CheckBox
@@ -77,6 +78,9 @@ class SetupActivity : AppCompatActivity() {
 
     /** L'entrée 0 est toujours le carillon synthétisé par l'application. */
     private var chimeValues: List<String> = listOf("")
+
+    /** Les entites meteo proposees. L'index 0 vaut toujours « automatique ». */
+    private var weatherValues: List<String> = listOf("")
 
     // La langue choisie dans les reglages s'impose avant que la moindre ressource soit
     // lue : posee plus tard, elle laisserait les textes deja resolus dans l'ancienne.
@@ -160,6 +164,7 @@ class SetupActivity : AppCompatActivity() {
         fileSharePortField = findViewById(R.id.file_share_port)
         fileSharePasswordField = findViewById(R.id.file_share_password)
         fileShareState = findViewById(R.id.file_share_state)
+        weatherField = findViewById(R.id.weather_entity)
         languageField = findViewById(R.id.language_choice)
         chimeChoiceField = findViewById(R.id.chime_choice)
         chimeOnDoorbellField = findViewById(R.id.chime_on_doorbell)
@@ -223,6 +228,7 @@ class SetupActivity : AppCompatActivity() {
         showShareAddress()
 
         loadCameras()
+        loadWeather()
 
         languageField.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item,
@@ -268,6 +274,54 @@ class SetupActivity : AppCompatActivity() {
      * En attendant la réponse, la liste affiche la valeur déjà enregistrée : les réglages
      * restent utilisables même si le serveur est injoignable.
      */
+    /**
+     * Propose les entites meteo du serveur, plutot que de faire saisir un `entity_id`.
+     *
+     * Le choix courant est reaffiche tant que la liste n'est pas revenue : sans cela,
+     * ouvrir les reglages puis enregistrer avant la fin de la requete effacerait le
+     * reglage, la liste ne contenant alors que « automatique ».
+     */
+    private fun loadWeather() {
+        val courant = prefs.weatherEntity
+        showWeather(
+            values = if (courant.isEmpty()) listOf("") else listOf("", courant),
+            labels = listOf(getString(R.string.weather_loading)) +
+                if (courant.isEmpty()) emptyList() else listOf(courant)
+        )
+
+        if (!prefs.isConfigured) return
+
+        kotlin.concurrent.thread(isDaemon = true) {
+            val meteos = try {
+                HaClient.fetchStates(prefs)
+                    .filter { it.domain == "weather" }
+                    .sortedBy { it.friendlyName.lowercase() }
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                if (meteos.isEmpty()) {
+                    showWeather(listOf(""), listOf(getString(R.string.weather_none_found)))
+                    return@runOnUiThread
+                }
+                showWeather(
+                    values = listOf("") + meteos.map { it.entityId },
+                    labels = listOf(getString(R.string.weather_auto)) +
+                        meteos.map { "${it.friendlyName}  (${it.entityId})" }
+                )
+            }
+        }
+    }
+
+    private fun showWeather(values: List<String>, labels: List<String>) {
+        weatherValues = values
+        weatherField.adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
+        weatherField.setSelection(values.indexOf(prefs.weatherEntity).coerceAtLeast(0))
+    }
+
     private fun loadCameras() {
         val current = prefs.doorbellCamera
         showCameras(
@@ -469,6 +523,8 @@ class SetupActivity : AppCompatActivity() {
         prefs.pinned = pinnedField.text.toString()
         prefs.useTls = tlsField.isChecked
         prefs.publishSensors = publishField.isChecked
+        prefs.weatherEntity =
+            weatherValues.getOrElse(weatherField.selectedItemPosition) { "" }
         prefs.fileShareEnabled = fileShareField.isChecked
         prefs.fileSharePort = fileSharePortField.text.toString().toIntOrNull() ?: 8080
         prefs.fileSharePassword = fileSharePasswordField.text.toString()

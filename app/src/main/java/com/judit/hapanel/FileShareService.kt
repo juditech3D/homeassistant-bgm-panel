@@ -67,8 +67,11 @@ class FileShareService : Service() {
         Thread {
             try {
                 root().mkdirs()
-                File(root(), "fonds").mkdirs()
-                File(root(), "musique").mkdirs()
+                // Un dossier par usage, pour que rien ne se melange : les fonds du
+                // tableau de bord, les photos du diaporama, la musique, les carillons.
+                for (nom in listOf("fonds", "diaporama", "musique", "carillons")) {
+                    File(root(), nom).mkdirs()
+                }
 
                 val s = ServerSocket(prefs.fileSharePort)
                 server = s

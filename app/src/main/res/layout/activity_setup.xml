@@ -503,6 +503,23 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/choose_entities" />
+
+            <!--
+                La meteo du lieu ou le panneau est accroche. Home Assistant en expose
+                souvent plusieurs, et la premiere venue n'est pas forcement la bonne.
+            -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/weather_label"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <Spinner
+                android:id="@+id/weather_entity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
         <!-- ============================ AFFICHAGE ============================ -->

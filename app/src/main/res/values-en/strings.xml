@@ -310,4 +310,9 @@
     <string name="label_brightness">Screen brightness (5 to 100 %)</string>
     <string name="label_photo_folder">Folder holding the slideshow photos</string>
     <string name="label_wake">The screen comes back on at a touch, or at a press on the knob.</string>
+    <!-- Weather -->
+    <string name="weather_label">Weather shown — for the place the panel is installed</string>
+    <string name="weather_auto">Automatic (the server\'s first one)</string>
+    <string name="weather_loading">Looking for weather entities…</string>
+    <string name="weather_none_found">No weather entity on the server</string>
 </resources>
