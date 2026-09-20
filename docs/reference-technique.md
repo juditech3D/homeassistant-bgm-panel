@@ -815,6 +815,23 @@ touchers — le réveil au doigt est immédiat, sans délai de rallumage.
 /sys/class/backlight/backlight/brightness   0 à max_brightness (255)
 ```
 
+> ⚠️ **`bl_power` ne suffit pas sur ce panneau.** Le pilote accepte la consigne
+> `FB_BLANK_POWERDOWN` et n'en fait rien : mesuré sur l'appareil, `bl_power` à 4 pendant
+> que `brightness` et `actual_brightness` tenaient 255. La dalle restait donc éclairée à
+> fond derrière une image noire — invisible en plein jour, très visible dans une pièce
+> sombre, et une usure pour rien.
+>
+> C'est **`brightness` à 0** qui éteint réellement, et le pilote l'honore à toutes les
+> valeurs, 0 compris. L'application écrit donc les deux : `bl_power` par principe — sur
+> un panneau dont le pilote l'honore, il coupe l'alimentation du rétroeclairage plutôt
+> que d'en mettre la modulation à zéro — puis `brightness` à 0, qui fait le travail.
+>
+> Au réveil, l'ordre compte : `bl_power` d'abord, la luminosité ensuite, faute de quoi le
+> rallumage écraserait la valeur à peine écrite.
+
+> **À ne pas confondre avec `/proc/vendor/lcd_ctrl`**, qui commande l'écran rond du
+> bouton rotatif, pas l'écran principal.
+
 `bl_power` appartient à root et `brightness` à system : l'application élargit leurs
 droits au démarrage via `su 0 sh -c 'chmod 666 …'`. **À refaire à chaque démarrage**, les
 permissions sysfs étant réinitialisées au redémarrage du panneau. Sans root, repli sur la

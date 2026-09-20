@@ -122,6 +122,20 @@ class ScreenManager(private val prefs: Prefs) {
         onScreensaverChanged?.invoke(false)
     }
 
+    /**
+     * Eteint l'ecran.
+     *
+     * `bl_power` seul ne suffit pas : le pilote de ce panneau accepte la consigne
+     * `FB_BLANK_POWERDOWN` sans rien en faire, et `brightness` reste a sa valeur --
+     * mesure sur l'appareil, `bl_power` a 4 pendant que `brightness` tenait 255. La
+     * dalle restait donc eclairee a fond derriere une image noire, ce qui se voit dans
+     * une piece sombre et use l'ecran pour rien.
+     *
+     * La luminosite est donc ramenee a zero par-dessus, et c'est elle qui eteint
+     * reellement. `bl_power` est conserve : il ne coute rien, et sur un panneau dont le
+     * pilote l'honore, il coupe l'alimentation du retroeclairage plutot que d'en mettre
+     * la modulation a zero.
+     */
     fun sleep() {
         if (isAsleep) return
         isAsleep = true
@@ -129,6 +143,7 @@ class ScreenManager(private val prefs: Prefs) {
             onFallbackBrightness?.invoke(0f)
         } else {
             write(BL_POWER, FB_BLANK_POWERDOWN)
+            write(BRIGHTNESS, 0)
         }
         onSleepChanged?.invoke(true)
     }
@@ -139,6 +154,8 @@ class ScreenManager(private val prefs: Prefs) {
         if (fallbackOnly) {
             onFallbackBrightness?.invoke(prefs.screenBrightness / 100f)
         } else {
+            // Dans cet ordre : rallumer l'alimentation avant de reposer la luminosite,
+            // sinon la valeur ecrite serait perdue par le rallumage.
             write(BL_POWER, FB_BLANK_UNBLANK)
             applyBrightness(prefs.screenBrightness)
         }
@@ -150,6 +167,10 @@ class ScreenManager(private val prefs: Prefs) {
 
     /** Luminosité en pourcentage. Un minimum est imposé pour ne jamais tout noircir. */
     fun applyBrightness(percent: Int) {
+        // Ecran eteint, on ne rallume pas : un reglage venu de Home Assistant ou de
+        // l'ecran de configuration ne doit pas reveiller le panneau par surprise. La
+        // valeur sera posee au reveil, qui lit prefs.screenBrightness.
+        if (isAsleep) return
         val clamped = percent.coerceIn(MIN_PERCENT, 100)
         if (fallbackOnly) {
             onFallbackBrightness?.invoke(clamped / 100f)
@@ -159,7 +180,17 @@ class ScreenManager(private val prefs: Prefs) {
         write(BRIGHTNESS, Math.round(clamped * max / 100f))
     }
 
+    /**
+     * La luminosite reellement appliquee, en pourcentage.
+     *
+     * Ecran eteint, la mesure vaudrait zero et serait publiee telle quelle vers Home
+     * Assistant. Ce n'est pas faux, mais ce n'est pas ce qu'on veut y lire : une
+     * automatisation qui relit cette valeur pour la reposer plus tard eteindrait l'ecran
+     * definitivement. On renvoie donc le reglage, c'est-a-dire ce que l'ecran retrouvera
+     * au reveil, et l'extinction se lit sur son propre capteur.
+     */
     fun brightnessPercent(): Int {
+        if (isAsleep) return prefs.screenBrightness
         val max = read(MAX_BRIGHTNESS)?.toIntOrNull() ?: 255
         val current = read(ACTUAL_BRIGHTNESS)?.toIntOrNull() ?: return prefs.screenBrightness
         if (max <= 0) return prefs.screenBrightness
