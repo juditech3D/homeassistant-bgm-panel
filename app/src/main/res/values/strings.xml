@@ -353,4 +353,13 @@ Déposez-en un dans %1$s, par le partage réseau, puis revenez ici.</string>
         <item quantity="one">%1$d nouvelle sonnerie</item>
         <item quantity="other">%1$d nouvelles sonneries</item>
     </plurals>
+    <!-- Etat de la verification des mises a jour -->
+    <string name="update_last_ok">Dernière vérification : %1$s</string>
+    <string name="update_last_failed">Vérification impossible : %1$s. Dernière réussie : %2$s</string>
+    <string name="update_never_checked">Aucune vérification depuis l\'installation</string>
+    <string name="update_never">jamais</string>
+    <string name="update_just_now">à l\'instant</string>
+    <string name="update_minutes_ago">il y a %1$d min</string>
+    <string name="update_hours_ago">il y a %1$d h</string>
+    <string name="update_days_ago">il y a %1$d j</string>
 </resources>

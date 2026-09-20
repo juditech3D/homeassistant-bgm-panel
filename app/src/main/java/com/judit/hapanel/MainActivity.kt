@@ -103,6 +103,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
     private val hideCamera = Runnable { stopDoorbellCamera() }
 
+    /** La verification periodique, qui se reprogramme elle-meme. */
+    private val updateTick = object : Runnable {
+        override fun run() {
+            if (isFinishing) return
+            if (prefs.updateAuto) runUpdateCheck()
+            ui.postDelayed(this, UPDATE_CHECK_INTERVAL_MS)
+        }
+    }
+
     private lateinit var knobThread: HandlerThread
     private lateinit var knobHandler: Handler
     private val ui = Handler(Looper.getMainLooper())
@@ -154,15 +163,23 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         if (prefs.updateAuto) {
             window.decorView.postDelayed({
                 if (isFinishing) return@postDelayed
-                UpdateFlow(this, prefs).also { flow ->
-                    flow.onPending = { version -> showUpdateBadge(version) }
-                }.check()
+                runUpdateCheck()
+                // Et une fois par jour ensuite. Ne verifier qu'au demarrage revenait a
+                // ne jamais verifier : ce panneau est encastre et tourne des semaines
+                // d'affilee. Constate -- une version publiee est restee ignoree jusqu'a
+                // ce qu'on presse le bouton a la main.
+                ui.postDelayed(updateTick, UPDATE_CHECK_INTERVAL_MS)
             }, UPDATE_CHECK_DELAY_MS)
         }
 
         // L'alimentation de l'écran rond retombe à chaque redémarrage du panneau :
         // c'était l'app constructeur, désormais désactivée, qui la rétablissait.
         // Sans cet appel l'écran reste noir bien que les écritures réussissent.
+        // Le cadran rond n'a pas de contexte Android : la langue lui est donnee. Celle
+        // de cette activite, donc celle choisie dans les reglages -- et non celle du
+        // systeme, qui peut etre tout autre.
+        knob.locale = resources.configuration.locales[0]
+
         if (prefs.knobScreenEnabled) VendorHw.setKnobScreenPower(true)
 
         status = findViewById(R.id.status)
@@ -490,6 +507,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     override fun onStop() {
         super.onStop()
         ui.removeCallbacks(tickHorloge)
+        // La verification periodique s'arrete avec l'ecran : elle repart a la prochaine
+        // creation, et une minuterie orpheline sur le fil principal est exactement ce
+        // qui a fini par eteindre la dalle sans que rien ne la rallume.
+        ui.removeCallbacks(updateTick)
         client.disconnect()
         sensors?.stop()
         hardware?.stop()
@@ -1081,6 +1102,13 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         }
     }
 
+    /** Lance une verification, en silence tant qu'il n'y a rien a proposer. */
+    private fun runUpdateCheck() {
+        UpdateFlow(this, prefs).also { flow ->
+            flow.onPending = { version -> showUpdateBadge(version) }
+        }.check()
+    }
+
     /**
      * Allume ou eteint l'alerte de memoire pleine.
      *
@@ -1544,6 +1572,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         /** Une minute entre deux comptages des captures du jour. */
         const val DOORBELL_COUNT_INTERVAL_MS = 60_000L
+
+        /**
+         * Une verification de mise a jour par jour.
+         *
+         * Assez frequent pour qu'un correctif arrive le jour meme, assez rare pour que
+         * l'API de GitHub ne s'en apercoive pas.
+         */
+        const val UPDATE_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
 
         const val EXTRA_TEST_DOORBELL = "test_doorbell"
 

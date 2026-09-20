@@ -357,4 +357,13 @@ Drop one into %1$s over the network share, then come back here.</string>
         <item quantity="one">%1$d new ring</item>
         <item quantity="other">%1$d new rings</item>
     </plurals>
+    <!-- Update check status -->
+    <string name="update_last_ok">Last check: %1$s</string>
+    <string name="update_last_failed">Could not check: %1$s. Last successful: %2$s</string>
+    <string name="update_never_checked">No check since the install</string>
+    <string name="update_never">never</string>
+    <string name="update_just_now">just now</string>
+    <string name="update_minutes_ago">%1$d min ago</string>
+    <string name="update_hours_ago">%1$d h ago</string>
+    <string name="update_days_ago">%1$d d ago</string>
 </resources>

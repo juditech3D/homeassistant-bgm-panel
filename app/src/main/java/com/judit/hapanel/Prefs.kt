@@ -220,6 +220,32 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putString(KEY_UPDATE_POSTPONED, v.trim()).apply()
 
     /** Chercher une mise à jour au démarrage, sans rien installer sans accord. */
+    /**
+     * Instant de la derniere tentative de verification, reussie ou non.
+     *
+     * Sert a espacer les tentatives : le panneau tourne des semaines sans redemarrer,
+     * et sans cette trace il ne verifierait qu'une fois, au tout premier demarrage.
+     */
+    var updateLastCheck: Long
+        get() = sp.getLong(KEY_UPDATE_LAST_CHECK, 0L)
+        set(v) = sp.edit().putLong(KEY_UPDATE_LAST_CHECK, v).apply()
+
+    /** Instant de la derniere verification qui a **abouti**, quelle qu'en soit l'issue. */
+    var updateLastSuccess: Long
+        get() = sp.getLong(KEY_UPDATE_LAST_SUCCESS, 0L)
+        set(v) = sp.edit().putLong(KEY_UPDATE_LAST_SUCCESS, v).apply()
+
+    /**
+     * La raison du dernier echec, ou vide si la derniere verification a abouti.
+     *
+     * Conservee parce qu'une verification de demarrage echoue sans temoin : personne
+     * n'est devant le panneau a ce moment-la, et rien ne distinguait ensuite « aucune
+     * mise a jour » de « je n'ai pas pu regarder ».
+     */
+    var updateLastError: String
+        get() = sp.getString(KEY_UPDATE_LAST_ERROR, "") ?: ""
+        set(v) = sp.edit().putString(KEY_UPDATE_LAST_ERROR, v).apply()
+
     var updateAuto: Boolean
         get() = sp.getBoolean(KEY_UPDATE_AUTO, true)
         set(v) = sp.edit().putBoolean(KEY_UPDATE_AUTO, v).apply()
@@ -504,6 +530,9 @@ class Prefs(context: Context) {
         const val KEY_UPDATE_SOURCE = "update_source"
         const val KEY_UPDATE_AUTO = "update_auto"
         const val KEY_UPDATE_POSTPONED = "update_postponed"
+        const val KEY_UPDATE_LAST_CHECK = "update_last_check"
+        const val KEY_UPDATE_LAST_SUCCESS = "update_last_success"
+        const val KEY_UPDATE_LAST_ERROR = "update_last_error"
         const val KEY_MEDIA_CARD = "feature_media_card"
         const val KEY_CAMERAS_SHOWN = "cameras_shown"
         const val KEY_LOCAL_AREAS = "local_areas"

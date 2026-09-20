@@ -1,6 +1,7 @@
 package com.judit.hapanel
 
 import android.app.Activity
+import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -42,9 +43,22 @@ class UpdateFlow(private val activity: Activity, private val prefs: Prefs) {
         }
 
         state?.setText(R.string.update_checking)
+        prefs.updateLastCheck = System.currentTimeMillis()
 
         thread(isDaemon = true) {
             val result = updater.check(source)
+
+            // L'issue est conservee, meme quand personne ne regarde. Une verification de
+            // demarrage se fait sans temoin, et son echec restait invisible : rien ne
+            // distinguait ensuite « aucune mise a jour » de « je n'ai pas pu regarder ».
+            if (result is Updater.Result.Failed) {
+                prefs.updateLastError = result.reason
+                Log.w(TAG, "verification impossible : ${result.reason}")
+            } else {
+                prefs.updateLastError = ""
+                prefs.updateLastSuccess = System.currentTimeMillis()
+            }
+
             activity.runOnUiThread {
                 if (activity.isFinishing) return@runOnUiThread
                 when (result) {
@@ -71,6 +85,37 @@ class UpdateFlow(private val activity: Activity, private val prefs: Prefs) {
                     is Updater.Result.Failed -> state?.text = result.reason
                 }
             }
+        }
+    }
+
+    /**
+     * Ce qu'il faut afficher a l'ouverture des reglages, avant toute verification.
+     *
+     * Sans cela le champ restait vide : on ne savait ni quand le panneau avait regarde
+     * pour la derniere fois, ni s'il y etait parvenu.
+     */
+    fun summary(): String {
+        val erreur = prefs.updateLastError
+        if (erreur.isNotBlank()) {
+            return activity.getString(R.string.update_last_failed, erreur, since())
+        }
+        if (prefs.updateLastSuccess == 0L) {
+            return activity.getString(R.string.update_never_checked)
+        }
+        return activity.getString(R.string.update_last_ok, since())
+    }
+
+    /** Depuis combien de temps la derniere verification a abouti, en mots. */
+    private fun since(): String {
+        val instant = prefs.updateLastSuccess
+        if (instant == 0L) return activity.getString(R.string.update_never)
+
+        val minutes = (System.currentTimeMillis() - instant) / 60_000L
+        return when {
+            minutes < 2L -> activity.getString(R.string.update_just_now)
+            minutes < 120L -> activity.getString(R.string.update_minutes_ago, minutes)
+            minutes < 2880L -> activity.getString(R.string.update_hours_ago, minutes / 60L)
+            else -> activity.getString(R.string.update_days_ago, minutes / 1440L)
         }
     }
 
@@ -123,5 +168,9 @@ class UpdateFlow(private val activity: Activity, private val prefs: Prefs) {
                 }
             }
         }
+    }
+
+    private companion object {
+        const val TAG = "HaPanelUpdate"
     }
 }

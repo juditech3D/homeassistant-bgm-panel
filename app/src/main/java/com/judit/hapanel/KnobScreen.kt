@@ -75,8 +75,34 @@ class KnobScreen {
     }
 
     private val arcRect = RectF(26f, 26f, WIDTH - 26f, HEIGHT - 26f)
-    private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    private val dateFormat = SimpleDateFormat("EEE d MMM", Locale.getDefault())
+    /**
+     * La langue d'affichage de la date, posee par le tableau de bord.
+     *
+     * `Locale.getDefault()` ne convient pas : elle rend la langue du **systeme**, et ce
+     * panneau est reste en anglais alors que l'application est reglee en francais. Le
+     * cadran affichait donc « Sun 20 Sep » sous une interface entierement francaise.
+     */
+    var locale: Locale = Locale.getDefault()
+
+    /** La langue avec laquelle les formats ci-dessous ont ete fabriques. */
+    private var formatsLocale: Locale? = null
+
+    private var timeFormat = SimpleDateFormat("HH:mm", locale)
+    private var dateFormat = SimpleDateFormat("EEE d MMM", locale)
+
+    /**
+     * Refabrique les formats si la langue a change.
+     *
+     * `SimpleDateFormat` fige sa langue a la construction, comme son fuseau : un
+     * changement de langue dans les reglages resterait sans effet sur ce cadran jusqu'au
+     * prochain demarrage de l'application.
+     */
+    private fun ensureFormats() {
+        if (formatsLocale == locale) return
+        timeFormat = SimpleDateFormat("HH:mm", locale)
+        dateFormat = SimpleDateFormat("EEE d MMM", locale)
+        formatsLocale = locale
+    }
 
     /**
      * Rappel des coups de sonnette du jour, deja mis en mots. Vide pour n'en rien dire.
@@ -106,6 +132,8 @@ class KnobScreen {
     fun drawClock() {
         canvas.drawColor(Color.BLACK)
         val now = Date()
+
+        ensureFormats()
 
         // Le fuseau est repris a chaque dessin. SimpleDateFormat fige celui qui avait
         // cours a sa construction : sur un panneau livre avec un fuseau d'usine, corrige

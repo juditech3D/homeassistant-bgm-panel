@@ -233,7 +233,11 @@ class SetupActivity : AppCompatActivity() {
         wifiFallbackField.isChecked = prefs.wifiFallback
         updateSourceField.setText(prefs.updateSource)
         updateAutoField.isChecked = prefs.updateAuto
-        updateState.text = getString(R.string.update_installed, updater.installedVersion)
+        // La version installee, puis ce qu'on sait de la derniere verification : sans
+        // ce second element, on ne savait ni quand le panneau avait regarde, ni s'il y
+        // etait parvenu.
+        updateState.text = getString(R.string.update_installed, updater.installedVersion) +
+            "\n" + UpdateFlow(this, prefs).summary()
         featureZigbee.isChecked = prefs.zigbeeEnabled
         zigbeeDeviceField.setText(prefs.zigbeeDevice)
         zigbeePortField.setText(prefs.zigbeePort.toString())
