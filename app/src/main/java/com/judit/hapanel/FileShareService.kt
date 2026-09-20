@@ -67,11 +67,7 @@ class FileShareService : Service() {
         Thread {
             try {
                 root().mkdirs()
-                // Un dossier par usage, pour que rien ne se melange : les fonds du
-                // tableau de bord, les photos du diaporama, la musique, les carillons.
-                for (nom in listOf("fonds", "diaporama", "musique", "carillons", "historique")) {
-                    File(root(), nom).mkdirs()
-                }
+                prepareFolders()
 
                 val s = ServerSocket(prefs.fileSharePort)
                 server = s
@@ -102,6 +98,30 @@ class FileShareService : Service() {
         }
         pool.shutdownNow()
         super.onDestroy()
+    }
+
+    /**
+     * Cree les dossiers du partage, chacun avec sa notice.
+     *
+     * Un dossier par usage, pour que rien ne se melange. La notice porte l'essentiel
+     * **dans son nom** : devant une fenetre de l'Explorateur, on voit ce que le dossier
+     * attend sans avoir a ouvrir quoi que ce soit, et sans avoir lu la documentation.
+     *
+     * Elle n'est ecrite que si elle manque : on n'ecrase pas un fichier que quelqu'un
+     * aurait annote.
+     */
+    private fun prepareFolders() {
+        for ((dossier, notice) in NOTICES) {
+            val cible = File(root(), dossier)
+            cible.mkdirs()
+            val fichier = File(cible, notice.first)
+            if (fichier.exists()) continue
+            try {
+                fichier.writeText(notice.second)
+            } catch (e: Exception) {
+                Log.w(TAG, "notice de $dossier non ecrite : ${e.message}")
+            }
+        }
     }
 
     // ------------------------------------------------------------ requête HTTP
@@ -145,6 +165,11 @@ class FileShareService : Service() {
                 out.write("HTTP/1.1 100 Continue\r\n\r\n".toByteArray())
                 out.flush()
             }
+
+            // Trace de chaque requete : le client WebDAV de Windows enchaine une
+            // dizaine de verbes pour un seul fichier depose, et sans cette ligne on ne
+            // sait pas lequel a echoue.
+            Log.i(TAG, "$methode $cible  (${taille} o)")
 
             if (!authorized(autorisation)) {
                 // Le corps est absorbé avant de répondre : sans cela, le navigateur
@@ -240,6 +265,7 @@ class FileShareService : Service() {
      */
     private fun receive(out: OutputStream, input: BufferedInputStream, relatif: String, taille: Long) {
         val fichier = resolve(relatif)
+        val existait = fichier?.isFile == true
         if (fichier == null || !accepted(fichier.name)) {
             skip(input, taille)
             return status(out, "403 Forbidden")
@@ -264,7 +290,9 @@ class FileShareService : Service() {
         }
         fichier.delete()
         partiel.renameTo(fichier)
-        status(out, "200 OK")
+        // 201 pour une creation, 204 pour un remplacement : ce sont les codes que la
+        // norme WebDAV prevoit, et certains clients les verifient.
+        status(out, if (existait) "204 No Content" else "201 Created")
     }
 
     private fun remove(out: OutputStream, relatif: String) {
@@ -420,11 +448,69 @@ class FileShareService : Service() {
                 status(out, "204 No Content")
             }
 
+            "PROPPATCH" -> {
+                // Windows s'en sert pour poser ses attributs de fichier -- dates de
+                // creation et de modification, indicateurs Win32. Le panneau ne les
+                // garde pas, mais il doit les **accepter** : un 405 ici fait conclure a
+                // l'Explorateur que l'ecriture a echoue, et il efface aussitot le
+                // fichier qu'il vient de deposer. Constate sur un MP3 de 150 ko, la
+                // trace montrant PUT complet, PROPPATCH refuse, puis DELETE.
+                val corps = readBody(input, taille)
+                send(
+                    out, "207 Multi-Status", "application/xml; charset=utf-8",
+                    proppatch(chemin, corps).toByteArray()
+                )
+            }
+
             else -> {
                 skip(input, taille)
                 status(out, "405 Method Not Allowed")
             }
         }
+    }
+
+    /**
+     * Accuse reception des proprietes posees, une par une.
+     *
+     * Les noms sont repris du corps de la requete plutot que renvoyes en bloc : certains
+     * clients verifient que chaque propriete demandee figure bien dans la reponse. Elles
+     * ne sont pas conservees pour autant -- ce sont des attributs Windows sans usage
+     * ici -- et une relecture ne les retrouvera donc pas.
+     */
+    private fun proppatch(chemin: String, corps: String): String {
+        val proprietes = Regex("""<(?:\w+:)?prop\b[^>]*>(.*?)</(?:\w+:)?prop>""", RegexOption.DOT_MATCHES_ALL)
+            .findAll(corps)
+            .flatMap { bloc ->
+                Regex("""<(?:(\w+):)?([\w.-]+)[^>]*/?>""").findAll(bloc.groupValues[1])
+                    .map { it.groupValues[2] }
+            }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .toList()
+
+        val prop = if (proprietes.isEmpty()) "<D:prop/>"
+        else proprietes.joinToString("", "<D:prop>", "</D:prop>") { "<Z:$it/>" }
+
+        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+            "<D:multistatus xmlns:D=\"DAV:\" xmlns:Z=\"urn:schemas-microsoft-com:\">" +
+            "<D:response><D:href>$chemin</D:href><D:propstat>$prop" +
+            "<D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response></D:multistatus>"
+    }
+
+    /** Lit le corps de la requete en entier, pour les verbes qui en portent un. */
+    private fun readBody(input: BufferedInputStream, taille: Long): String {
+        if (taille <= 0) return ""
+        val tampon = ByteArray(taille.toInt().coerceAtMost(64 * 1024))
+        var lu = 0
+        while (lu < tampon.size) {
+            val n = input.read(tampon, lu, tampon.size - lu)
+            if (n < 0) break
+            lu += n
+        }
+        // Un corps plus gros que le tampon serait anormal ici : on absorbe le reste pour
+        // ne pas laisser la socket desynchronisee.
+        skip(input, taille - lu)
+        return String(tampon, 0, lu)
     }
 
     /** La reponse 207 : la ressource demandee, et ses enfants si la profondeur le veut. */
@@ -687,6 +773,57 @@ load();
     companion object {
         /** Le seul dossier partagé, avec ses sous-dossiers. */
         const val ROOT = "/sdcard/HAPanel"
+
+        /**
+         * Les dossiers du partage, avec le nom et le contenu de leur notice.
+         *
+         * Les noms de fichier s'en tiennent a des caracteres qu'aucun systeme ne refuse :
+         * ni deux-points, ni chevrons, ni barre verticale, que Windows interdit.
+         */
+        private val NOTICES: Map<String, Pair<String, String>> = mapOf(
+            "fonds" to (
+                "A DEPOSER ICI - fonds d ecran du tableau de bord (jpg, png, webp).txt" to
+                    "Images destinees au fond du tableau de bord.\n\n" +
+                    "Formats acceptes : jpg, jpeg, png, webp.\n" +
+                    "Format conseille : paysage, au moins 1024 x 600.\n\n" +
+                    "Une fois deposee, choisissez l'image dans :\n" +
+                    "Reglages > Ecran et veille > Choisir le fond du tableau de bord.\n"
+                ),
+            "diaporama" to (
+                "A DEPOSER ICI - photos du diaporama de veille (jpg, png, webp).txt" to
+                    "Photos qui defilent pendant la mise en veille.\n\n" +
+                    "Formats acceptes : jpg, jpeg, png, webp.\n" +
+                    "Une photo toutes les 20 secondes, avec un lent zoom.\n\n" +
+                    "Ce dossier est distinct de « fonds » : ce qui est ici defile en\n" +
+                    "veille, ce qui est la-bas habille le tableau de bord.\n\n" +
+                    "Activez ensuite le diaporama dans :\n" +
+                    "Reglages > Ecran et veille > Choisir l'ecran de veille.\n"
+                ),
+            "carillons" to (
+                "A DEPOSER ICI - sons de sonnette (mp3, wav, ogg, flac, m4a).txt" to
+                    "Sons joues quand quelqu'un sonne a la porte.\n\n" +
+                    "Formats acceptes : mp3, wav, ogg, flac, m4a.\n" +
+                    "Duree conseillee : quelques secondes.\n\n" +
+                    "Choisissez ensuite le carillon dans :\n" +
+                    "Reglages > Audio, sonnette et assistant.\n"
+                ),
+            "musique" to (
+                "A DEPOSER ICI - musique (mp3, wav, ogg, flac, m4a).txt" to
+                    "Morceaux stockes sur le panneau.\n\n" +
+                    "Formats acceptes : mp3, wav, ogg, flac, m4a.\n\n" +
+                    "Le panneau recoit aussi la musique par Home Assistant (DLNA) et par\n" +
+                    "Bluetooth : ce dossier ne sert que pour de l'audio garde en local.\n"
+                ),
+            "historique" to (
+                "NE RIEN DEPOSER ICI - captures des coups de sonnette (jpg).txt" to
+                    "Captures enregistrees automatiquement a chaque coup de sonnette.\n\n" +
+                    "Le nom encode la date : AAAA-MM-JJ_HHMMSS.jpg\n" +
+                    "Le suffixe -test marque un essai declenche depuis les reglages.\n\n" +
+                    "Vous pouvez copier ces images sur votre ordinateur.\n" +
+                    "Les supprimer depuis le panneau se fait dans l'historique :\n" +
+                    "onglet cameras > icone historique.\n"
+                )
+        )
 
         /** Ce que le partage accepte de recevoir. */
         private val EXTENSIONS = setOf(
