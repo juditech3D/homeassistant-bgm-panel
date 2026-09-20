@@ -84,10 +84,21 @@
                     style="@style/HeaderIcon"
                     android:contentDescription="@string/assistant_enabled" />
 
-                <TextView
+                <!--
+                    Le micro est un interrupteur, pas une icône de plus. Deux icônes de
+                    micro côte à côte — l'assistant et le mode privé — se confondaient,
+                    alors que l'une commande l'autre : micro coupé, l'assistant ne peut
+                    rien faire. Un interrupteur dit sans ambiguïté qu'il s'agit d'un état
+                    que l'on bascule, et non d'une action que l'on déclenche.
+                -->
+                <Switch
                     android:id="@+id/panel_mic"
-                    style="@style/HeaderIcon"
-                    android:contentDescription="@string/feature_microphone" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/mic_label"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <!-- Pastille d'état : verte connecté, rouge sinon. -->

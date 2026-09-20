@@ -10,6 +10,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -59,7 +60,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var volumeIcon: TextView
     private lateinit var volumeBar: android.widget.SeekBar
     private lateinit var assistantIcon: TextView
-    private lateinit var micIcon: TextView
+    private lateinit var micSwitch: android.widget.Switch
 
     /** Vrai pendant que le doigt tient la barre : on cesse d'ecraser la valeur reglee. */
     private var draggingVolume = false
@@ -633,9 +634,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         volumeIcon = findViewById(R.id.panel_volume_icon)
         volumeBar = findViewById(R.id.panel_volume_bar)
         assistantIcon = findViewById(R.id.panel_assistant)
-        micIcon = findViewById(R.id.panel_mic)
+        micSwitch = findViewById(R.id.panel_mic)
 
-        listOf(volumeIcon, assistantIcon, micIcon).forEach { it.typeface = MdiIcons.typeface() }
+        listOf(volumeIcon, assistantIcon).forEach { it.typeface = MdiIcons.typeface() }
 
         // Toucher l'icone confie le volume au bouton rotatif, comme du temps ou il
         // s'agissait d'une tuile : l'ecran rond montre le haut-parleur et la rotation
@@ -673,13 +674,19 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         assistantIcon.setOnClickListener {
             lastInteraction = System.currentTimeMillis()
+            // Micro coupe, l'assistant ne peut rien faire. Plutot que de rester sans
+            // reaction -- ce qui passerait pour une panne -- on dit pourquoi.
+            if (!prefs.microphoneEnabled) {
+                Toast.makeText(this, R.string.assistant_needs_mic, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             assistant?.toggle()
             refreshPanelControls()
         }
 
-        micIcon.setOnClickListener {
+        micSwitch.setOnClickListener {
             lastInteraction = System.currentTimeMillis()
-            setMicrophoneEnabled(!prefs.microphoneEnabled)
+            setMicrophoneEnabled(micSwitch.isChecked)
         }
 
         refreshPanelControls()
@@ -713,32 +720,29 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         val assistantVisible = prefs.assistantEnabled
         assistantIcon.visibility = if (assistantVisible) View.VISIBLE else View.GONE
-        micIcon.visibility = if (assistantVisible) View.VISIBLE else View.GONE
+        micSwitch.visibility = if (assistantVisible) View.VISIBLE else View.GONE
         if (assistantVisible) {
+            micSwitch.isChecked = prefs.microphoneEnabled
             val etat = assistant?.state ?: VoiceAssistant.State.IDLE
+            // Plus aucune icone de micro pour l'assistant : elle se confondait avec
+            // celle du mode prive, juste a cote, alors que l'une commande l'autre.
             assistantIcon.text = MdiIcons.glyph(
                 when (etat) {
-                    VoiceAssistant.State.LISTENING -> "microphone"
+                    VoiceAssistant.State.LISTENING -> "account-voice"
                     VoiceAssistant.State.THINKING -> "dots-horizontal"
                     VoiceAssistant.State.SPEAKING -> "account-voice"
-                    else -> "microphone-outline"
+                    else -> "assistant"
                 }
             )
+            // Grise quand le micro est coupe : l'assistant depend de lui, et le montrer
+            // evite de chercher pourquoi rien ne se passe.
             assistantIcon.setTextColor(
                 getColor(
-                    if (etat == VoiceAssistant.State.IDLE) R.color.text_secondary
-                    else R.color.accent
-                )
-            )
-
-            // Mode prive : l'icone barree et la couleur d'alerte rendent l'etat lisible
-            // d'un coup d'oeil depuis l'autre bout de la piece.
-            micIcon.text = MdiIcons.glyph(
-                if (prefs.microphoneEnabled) "microphone" else "microphone-off"
-            )
-            micIcon.setTextColor(
-                getColor(
-                    if (prefs.microphoneEnabled) R.color.text_secondary else R.color.status_error
+                    when {
+                        !prefs.microphoneEnabled -> R.color.text_tertiary
+                        etat != VoiceAssistant.State.IDLE -> R.color.accent
+                        else -> R.color.text_secondary
+                    }
                 )
             )
         }

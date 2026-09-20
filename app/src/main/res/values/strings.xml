@@ -42,6 +42,8 @@
     <string name="hint_go2rtc">Adresse go2rtc, ex. http://192.168.1.10:1984</string>
     <string name="hint_doorbell_camera_seconds">Durée d\'affichage (s)</string>
     <string name="doorbell_test">Tester la sonnerie complète (carillon + caméra)</string>
+    <string name="mic_label">Micro</string>
+    <string name="assistant_needs_mic">Le micro est coupé : réactive-le pour parler à l\'assistant.</string>
     <string name="feature_microphone">Micro / mode privé</string>
     <string name="assistant_enabled">Assistant vocal (nécessite le micro)</string>
     <string name="hint_brightness">Luminosité écran (5 à 100 %)</string>
