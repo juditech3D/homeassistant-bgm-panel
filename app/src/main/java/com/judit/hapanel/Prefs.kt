@@ -283,6 +283,37 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putInt(KEY_DOORBELL_SECONDS, v.coerceIn(5, 300)).apply()
 
     /** Dossier où déposer les photos du diaporama. */
+    /**
+     * Le fond du tableau de bord : chemin d'un fichier, ou vide pour le degrade livre
+     * avec l'application.
+     *
+     * C'est un chemin et non une ressource, parce que l'image peut venir de l'APK du
+     * constructeur ou d'un lien : dans les deux cas elle est recopiee dans le stockage
+     * prive, ce qui la rend independante de sa provenance.
+     */
+    var dashboardBackground: String
+        get() = sp.getString(KEY_DASH_BG, "") ?: ""
+        set(v) = sp.edit().putString(KEY_DASH_BG, v).apply()
+
+    /** L'image ou la video de l'ecran de veille, quand [screensaverMode] les demande. */
+    var screensaverImage: String
+        get() = sp.getString(KEY_SAVER_IMAGE, "") ?: ""
+        set(v) = sp.edit().putString(KEY_SAVER_IMAGE, v).apply()
+
+    /**
+     * D'ou vient le fond retenu : l'entree d'archive du constructeur, ou `lien`.
+     *
+     * Sert uniquement a cocher la bonne case dans la grille de choix. Le chemin du
+     * fichier ne suffirait pas : toutes les copies du constructeur portent le meme nom.
+     */
+    var dashboardBackgroundSource: String
+        get() = sp.getString(KEY_DASH_BG_SRC, "") ?: ""
+        set(v) = sp.edit().putString(KEY_DASH_BG_SRC, v).apply()
+
+    var screensaverImageSource: String
+        get() = sp.getString(KEY_SAVER_IMAGE_SRC, "") ?: ""
+        set(v) = sp.edit().putString(KEY_SAVER_IMAGE_SRC, v).apply()
+
     var photoFolder: String
         get() = sp.getString(KEY_PHOTO_FOLDER, ScreensaverView.DEFAULT_FOLDER)
             ?: ScreensaverView.DEFAULT_FOLDER
@@ -335,6 +366,10 @@ class Prefs(context: Context) {
         const val KEY_SAVER_MODE = "screensaver_mode"
         const val KEY_LANGUAGE = "language"
         const val KEY_PHOTO_FOLDER = "photo_folder"
+        const val KEY_DASH_BG = "dashboard_background"
+        const val KEY_SAVER_IMAGE = "screensaver_image"
+        const val KEY_DASH_BG_SRC = "dashboard_background_source"
+        const val KEY_SAVER_IMAGE_SRC = "screensaver_image_source"
         const val KEY_CHIME_FOLDER = "chime_folder"
         const val KEY_CHIME_FILE = "chime_file"
         const val KEY_CHIME_ON_DOORBELL = "chime_on_doorbell"

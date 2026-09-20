@@ -265,4 +265,30 @@
     <string name="weather_snowy">Snowy</string>
     <string name="weather_snowy_rainy">Sleet</string>
     <string name="weather_windy">Windy</string>
+
+    <!-- Wallpaper picker -->
+    <string name="wallpaper_title_saver">Screensaver</string>
+    <string name="wallpaper_title_dashboard">Dashboard background</string>
+    <string name="wallpaper_open_saver">Choose the screensaver…</string>
+    <string name="wallpaper_open_dashboard">Choose the dashboard background…</string>
+    <string name="wallpaper_loading">Reading the panel\'s wallpapers…</string>
+    <string name="wallpaper_found">%1$d wallpapers found on the panel</string>
+    <string name="wallpaper_none_vendor">No vendor wallpaper on this panel</string>
+    <string name="wallpaper_copying">Copying the wallpaper…</string>
+    <string name="wallpaper_copy_failed">Could not copy it</string>
+    <string name="wallpaper_default">Default gradient</string>
+    <string name="wallpaper_numbered">Wallpaper %1$d</string>
+    <string name="wallpaper_from_link">From a link…</string>
+    <string name="wallpaper_custom_photo">Photo from the link</string>
+    <string name="wallpaper_custom_video">Video from the link</string>
+    <string name="wallpaper_preview">Wallpaper preview</string>
+    <string name="wallpaper_check_mark">✓</string>
+    <string name="wallpaper_link_title">Wallpaper from a link</string>
+    <string name="wallpaper_link_help">Paste the address of a photo or a video. A Pexels photo page works as-is. For a video you need the address of the file itself: the address of a video page is not enough.</string>
+    <string name="wallpaper_link_hint">https://…</string>
+    <string name="wallpaper_link_fetch">Download</string>
+    <string name="wallpaper_link_invalid">Unusable address. For a video, give the link to the file.</string>
+    <string name="wallpaper_link_not_media">That link returns %1$s, neither image nor video</string>
+    <string name="wallpaper_downloading">Downloading…</string>
+    <string name="wallpaper_vendor_notice">The wallpapers offered here are the stock app\'s own, already present on the panel. They belong to the manufacturer: they are read on the device, never redistributed.</string>
 </resources>

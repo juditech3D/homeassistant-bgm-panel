@@ -37,7 +37,6 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var brightnessField: EditText
     private lateinit var wakeProximityField: CheckBox
     private lateinit var saverDelayField: EditText
-    private lateinit var saverModeField: Spinner
     private lateinit var photoFolderField: EditText
     private lateinit var languageField: Spinner
     private lateinit var chimeChoiceField: Spinner
@@ -71,7 +70,6 @@ class SetupActivity : AppCompatActivity() {
     private var cameraValues: List<String> = listOf("")
 
     /** L'ordre fixe la correspondance entre les entrées du menu et les valeurs stockées. */
-    private val saverModeValues = listOf("anime", "photos")
 
     /** L'entrée 0 est toujours le carillon synthétisé par l'application. */
     private var chimeValues: List<String> = listOf("")
@@ -153,7 +151,6 @@ class SetupActivity : AppCompatActivity() {
         brightnessField = findViewById(R.id.screen_brightness)
         wakeProximityField = findViewById(R.id.wake_proximity)
         saverDelayField = findViewById(R.id.screensaver_delay)
-        saverModeField = findViewById(R.id.screensaver_mode)
         photoFolderField = findViewById(R.id.photo_folder)
         languageField = findViewById(R.id.language_choice)
         chimeChoiceField = findViewById(R.id.chime_choice)
@@ -213,14 +210,6 @@ class SetupActivity : AppCompatActivity() {
             prefs.go2rtcUrl.ifEmpty { "http://${prefs.host}:1984" }
         )
         loadCameras()
-
-        saverModeField.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item,
-            listOf(getString(R.string.saver_animated), getString(R.string.saver_photos))
-        )
-        saverModeField.setSelection(
-            saverModeValues.indexOf(prefs.screensaverMode).coerceAtLeast(0)
-        )
 
         languageField.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item,
@@ -410,6 +399,15 @@ class SetupActivity : AppCompatActivity() {
         // Tonalite de quelques secondes sur la sortie musique. Contrairement au carillon,
         // qui passe par le flux des notifications, elle emprunte le meme chemin que la
         // musique : c'est donc elle qui dit si le son part bien vers l'enceinte Bluetooth.
+        // Les fonds : ecran de veille d'un cote, tableau de bord de l'autre, mais la
+        // meme grille de vignettes -- seule la destination change.
+        findViewById<Button>(R.id.open_saver_wallpaper).setOnClickListener {
+            WallpaperPickerActivity.open(this, dashboard = false)
+        }
+        findViewById<Button>(R.id.open_dashboard_wallpaper).setOnClickListener {
+            WallpaperPickerActivity.open(this, dashboard = true)
+        }
+
         findViewById<Button>(R.id.audio_test).setOnClickListener {
             AudioController(this).playTestTone()
         }
@@ -461,8 +459,6 @@ class SetupActivity : AppCompatActivity() {
             ?.let { prefs.zigbeeDevice = it }
         zigbeePortField.text.toString().trim().toIntOrNull()
             ?.let { prefs.zigbeePort = it }
-        prefs.screensaverMode = saverModeValues
-            .getOrElse(saverModeField.selectedItemPosition) { "anime" }
         prefs.chimeFile = chimeValues.getOrElse(chimeChoiceField.selectedItemPosition) { "" }
 
         timeoutField.text.toString().trim().toIntOrNull()

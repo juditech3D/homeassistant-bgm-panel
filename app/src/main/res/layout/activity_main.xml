@@ -4,6 +4,7 @@
     l'interface, bandeau compris, sinon il ne fait pas illusion.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dashboard_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/dashboard_background">
@@ -240,6 +241,17 @@
 
     <com.judit.hapanel.ScreensaverView
         android:id="@+id/screensaver"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
+    <!--
+        Le lecteur de l'ecran de veille video. Pose a cote de l'ecran de veille dessine,
+        et non dedans : un Canvas ne lit pas de flux video, il faut une vraie surface.
+        Il reste invisible et muet tant qu'aucune video n'est choisie.
+    -->
+    <VideoView
+        android:id="@+id/screensaver_video"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone" />

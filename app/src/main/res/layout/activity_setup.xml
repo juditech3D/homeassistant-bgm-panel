@@ -462,12 +462,17 @@
                     android:textColor="@color/text_primary"
                     android:textColorHint="@color/text_secondary" />
 
-                <Spinner
-                    android:id="@+id/screensaver_mode"
+                <!--
+                    Le mode de veille se choisit a la vignette, dans le selecteur : une
+                    liste de noms n'apprend rien de ce qu'on va voir a l'ecran.
+                -->
+                <Button
+                    android:id="@+id/open_saver_wallpaper"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
-                    android:minWidth="170dp" />
+                    android:text="@string/wallpaper_open_saver"
+                    android:textSize="12sp" />
             </LinearLayout>
 
             <EditText
@@ -479,6 +484,22 @@
                 android:maxLines="1"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary" />
+
+            <Button
+                android:id="@+id/open_dashboard_wallpaper"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/wallpaper_open_dashboard"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/wallpaper_vendor_notice"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"

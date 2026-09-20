@@ -1,6 +1,10 @@
 package com.judit.hapanel
 
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -14,6 +18,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.io.File
 
 /**
  * Tableau de bord du panneau.
@@ -88,6 +93,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private var assistant: VoiceAssistant? = null
     private lateinit var screen: ScreenManager
     private lateinit var screensaver: ScreensaverView
+    private lateinit var screensaverVideo: android.widget.VideoView
     private lateinit var camera: CameraView
 
     private val hideCamera = Runnable { stopDoorbellCamera() }
@@ -247,17 +253,13 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         client.listener = this
 
         screensaver = findViewById(R.id.screensaver)
-        screensaver.mode = if (prefs.screensaverMode == "photos") {
-            ScreensaverView.Mode.PHOTOS
-        } else {
-            ScreensaverView.Mode.ANIMATED
-        }
-        screensaver.photoFolder = prefs.photoFolder
+        screensaverVideo = findViewById(R.id.screensaver_video)
+        applyWallpapers()
 
         screen = ScreenManager(prefs).apply {
             onScreensaverChanged = { showing ->
                 runOnUiThread {
-                    if (showing) screensaver.startSaver() else screensaver.stopSaver()
+                    if (showing) startScreensaver() else stopScreensaver()
                 }
             }
             // Si le root manque, on ne peut qu'assombrir la fenêtre au lieu d'éteindre.
@@ -427,6 +429,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     /** Au retour du sélecteur, la liste a pu changer : on la réapplique. */
     override fun onResume() {
         super.onResume()
+        // Le fond est repose a chaque retour : un choix fait dans les reglages doit se
+        // voir en revenant, sans qu'il faille redemarrer le panneau.
+        applyWallpapers()
         refreshPanelControls()
         if (allEntities.isNotEmpty()) applySelection()
     }
@@ -704,6 +709,72 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private val clearPanelVolumeTarget = Runnable {
         panelVolumeTarget = null
         refreshPanelTile()
+    }
+
+    /**
+     * Applique les fonds choisis : celui du tableau de bord, et celui de la veille.
+     *
+     * Appele au demarrage et a chaque retour sur l'ecran, pour qu'un choix fait dans les
+     * reglages se voie sans avoir a redemarrer le panneau.
+     */
+    private fun applyWallpapers() {
+        // Le fond du tableau de bord. Le voile sombre par-dessus reste indispensable :
+        // sur une photo claire, les tuiles et leur texte deviendraient illisibles.
+        val fond = prefs.dashboardBackground
+        val racine = findViewById<View>(R.id.dashboard_root) ?: window.decorView
+        val fichier = File(fond)
+        if (fond.isNotBlank() && fichier.isFile) {
+            val image = BitmapFactory.decodeFile(fichier.absolutePath)
+            if (image != null) {
+                racine.background = LayerDrawable(
+                    arrayOf(
+                        BitmapDrawable(resources, image).apply {
+                            gravity = android.view.Gravity.FILL
+                        },
+                        ColorDrawable(SCRIM)
+                    )
+                )
+            }
+        } else {
+            racine.setBackgroundResource(R.drawable.dashboard_background)
+        }
+
+        // L'ecran de veille.
+        screensaver.photoFolder = prefs.photoFolder
+        screensaver.imagePath = prefs.screensaverImage
+        screensaver.mode = when (prefs.screensaverMode) {
+            "photos" -> ScreensaverView.Mode.PHOTOS
+            "image" -> ScreensaverView.Mode.IMAGE
+            else -> ScreensaverView.Mode.ANIMATED
+        }
+    }
+
+    /** Vrai quand la veille doit lire une video plutot que dessiner. */
+    private fun screensaverIsVideo(): Boolean =
+        prefs.screensaverMode == "video" && File(prefs.screensaverImage).isFile
+
+    private fun startScreensaver() {
+        if (screensaverIsVideo()) {
+            screensaverVideo.visibility = View.VISIBLE
+            screensaverVideo.setVideoPath(prefs.screensaverImage)
+            screensaverVideo.setOnPreparedListener { lecteur ->
+                // Une veille sonore reveillerait la maison : le son est coupe, et la
+                // lecture boucle sans fin.
+                lecteur.isLooping = true
+                lecteur.setVolume(0f, 0f)
+            }
+            screensaverVideo.start()
+        } else {
+            screensaver.startSaver()
+        }
+    }
+
+    private fun stopScreensaver() {
+        if (screensaverVideo.visibility == View.VISIBLE) {
+            screensaverVideo.stopPlayback()
+            screensaverVideo.visibility = View.GONE
+        }
+        screensaver.stopSaver()
     }
 
     /** L'état courant de l'amplificateur : la cible si on règle, sinon le matériel. */
@@ -1299,6 +1370,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         const val REQ_MIC = 101
 
         /** Demande de rejouer la séquence de sonnerie au démarrage, depuis les réglages. */
+        /**
+         * Le voile pose sur un fond choisi par l'utilisateur.
+         *
+         * Le degrade livre avec l'application porte deja le sien, dans son drawable ;
+         * une photo quelconque, non -- et sans voile, les tuiles blanches disparaissent
+         * sur un ciel clair.
+         */
+        const val SCRIM = 0xB3060810.toInt()
+
         const val EXTRA_TEST_DOORBELL = "test_doorbell"
 
         /** Laisse le temps à la connexion de s'établir avant le test. */

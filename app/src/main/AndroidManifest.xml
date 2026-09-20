@@ -71,6 +71,14 @@
             filaire ne répond : c'est alors le seul moyen de reconnecter le panneau sans
             passer par un câble et ADB.
         -->
+        <!-- Choix du fond : ecran de veille et tableau de bord, meme grille. -->
+        <activity
+            android:name=".WallpaperPickerActivity"
+            android:exported="false"
+            android:label="@string/wallpaper_title_dashboard"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
         <activity
             android:name=".NetworkActivity"
             android:exported="false"

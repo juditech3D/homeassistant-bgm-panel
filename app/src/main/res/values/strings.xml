@@ -261,4 +261,30 @@
     <string name="weather_snowy">Neigeux</string>
     <string name="weather_snowy_rainy">Pluie et neige</string>
     <string name="weather_windy">Venteux</string>
+
+    <!-- Choix du fond d'ecran -->
+    <string name="wallpaper_title_saver">Écran de veille</string>
+    <string name="wallpaper_title_dashboard">Fond du tableau de bord</string>
+    <string name="wallpaper_open_saver">Choisir l\'écran de veille…</string>
+    <string name="wallpaper_open_dashboard">Choisir le fond du tableau de bord…</string>
+    <string name="wallpaper_loading">Lecture des fonds du panneau…</string>
+    <string name="wallpaper_found">%1$d fonds trouvés sur le panneau</string>
+    <string name="wallpaper_none_vendor">Aucun fond du constructeur sur ce panneau</string>
+    <string name="wallpaper_copying">Copie du fond…</string>
+    <string name="wallpaper_copy_failed">Copie impossible</string>
+    <string name="wallpaper_default">Dégradé par défaut</string>
+    <string name="wallpaper_numbered">Fond %1$d</string>
+    <string name="wallpaper_from_link">Depuis un lien…</string>
+    <string name="wallpaper_custom_photo">Photo du lien</string>
+    <string name="wallpaper_custom_video">Vidéo du lien</string>
+    <string name="wallpaper_preview">Aperçu du fond</string>
+    <string name="wallpaper_check_mark">✓</string>
+    <string name="wallpaper_link_title">Fond depuis un lien</string>
+    <string name="wallpaper_link_help">Collez l\'adresse d\'une photo ou d\'une vidéo. Une page photo Pexels est acceptée telle quelle. Pour une vidéo, il faut l\'adresse du fichier lui-même : l\'adresse d\'une page vidéo ne suffit pas.</string>
+    <string name="wallpaper_link_hint">https://…</string>
+    <string name="wallpaper_link_fetch">Télécharger</string>
+    <string name="wallpaper_link_invalid">Adresse inutilisable. Pour une vidéo, donnez le lien du fichier.</string>
+    <string name="wallpaper_link_not_media">Ce lien renvoie du %1$s, ni image ni vidéo</string>
+    <string name="wallpaper_downloading">Téléchargement…</string>
+    <string name="wallpaper_vendor_notice">Les fonds proposés ici sont ceux de l\'application d\'origine, déjà présents sur le panneau. Ils appartiennent au fabricant : ils sont lus sur l\'appareil, jamais redistribués.</string>
 </resources>
