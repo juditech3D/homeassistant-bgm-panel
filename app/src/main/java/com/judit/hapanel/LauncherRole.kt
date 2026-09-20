@@ -42,8 +42,8 @@ object LauncherRole {
     fun take(context: Context): Boolean =
         setHome(context, "${context.packageName}/.SetupActivity")
 
-    /** Rend le rôle au lanceur du constructeur et l'affiche. */
-    fun release(context: Context): Boolean {
+    /** Rend le rôle d'accueil au lanceur du constructeur, et l'affiche. */
+    fun giveBack(context: Context): Boolean {
         val rendu = setHome(context, "$VENDOR_LAUNCHER/$VENDOR_LAUNCHER.MainActivity") ||
             setHome(context, VENDOR_LAUNCHER)
         openVendorLauncher(context)

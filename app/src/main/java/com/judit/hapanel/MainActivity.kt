@@ -150,6 +150,16 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         mediaCard.onService = { service, entityId, data ->
             client.callService("media_player", service, entityId, data)
         }
+        // Toucher la carte confie le lecteur au bouton rotatif : l'ecran rond montre une
+        // note de musique et la rotation regle le volume, sans passer par la grille.
+        mediaCard.onFocusRequest = { lecteur ->
+            lastInteraction = System.currentTimeMillis()
+            volumeUnsupportedWarned = false
+            knobFocus = if (knobFocus?.entityId == lecteur.entityId) null else lecteur
+            adapter.select(-1)
+            refreshKnobNow()
+            refreshPanelControls()
+        }
         empty = findViewById(R.id.empty)
         tiles = findViewById(R.id.tiles)
 
@@ -361,7 +371,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             // Plafonnee : une tuile de 400 px de haut n'a qu'un grand vide au milieu,
             // l'icone en haut et la valeur tout en bas.
             adapter.tileHeight = (hauteur / lignesVisibles).coerceIn(
-                (96 * densite).toInt(), (200 * densite).toInt()
+                (88 * densite).toInt(), (132 * densite).toInt()
             )
         }
     }
@@ -516,6 +526,19 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
             ui.removeCallbacks(sendPending)
             ui.postDelayed(sendPending, SEND_DEBOUNCE_MS)
+        } else if (knobFocus != null) {
+            // Le bouton est dedie a quelque chose : il ne doit jamais deriver vers la
+            // grille. Un lecteur qui n'annonce pas de niveau de volume -- beaucoup de
+            // renderers DLNA sont dans ce cas -- laissait la rotation promener la
+            // selection, ce qui donnait l'impression que le bouton s'egarait.
+            if (!volumeUnsupportedWarned) {
+                volumeUnsupportedWarned = true
+                Toast.makeText(
+                    this,
+                    getString(R.string.media_no_volume, entity?.friendlyName.orEmpty()),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         } else {
             adapter.moveSelection(direction)
             adapter.selected.let { if (it >= 0) tiles.smoothScrollToPosition(it) }
@@ -523,6 +546,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         }
         refreshKnobNow()
     }
+
+    /** Ne prevenir qu'une fois par focus : un avertissement par cran serait insupportable. */
+    private var volumeUnsupportedWarned = false
 
     /** Appui : allume ou éteint l'entité sélectionnée. */
     private fun onPress() {
@@ -684,6 +710,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         // agit dessus. Un second appui rend la main.
         volumeIcon.setOnClickListener {
             lastInteraction = System.currentTimeMillis()
+            volumeUnsupportedWarned = false
             knobFocus = if (knobFocus?.entityId == Entity.PANEL_VOLUME_ID) {
                 null
             } else {
@@ -798,7 +825,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun refreshPanelTile() = refreshPanelControls()
 
     private val sendPending = Runnable {
-        val entity = adapter.selectedEntity() ?: return@Runnable
+        // knobEntity et non la tuile selectionnee : le bouton peut piloter le volume du
+        // panneau ou un lecteur depuis le bandeau, sans qu'aucune tuile soit elue.
+        val entity = knobEntity() ?: return@Runnable
         val value = pendingValue ?: return@Runnable
         client.applyValue(entity, value)
     }
@@ -819,9 +848,13 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     }
 
     /** L'entite que le bouton pilote : le focus du bandeau, sinon la tuile selectionnee. */
-    private fun knobEntity(): Entity? =
-        knobFocus?.let { if (it.entityId == Entity.PANEL_VOLUME_ID) currentPanelVolumeEntity() else it }
-            ?: adapter.selectedEntity()
+    private fun knobEntity(): Entity? {
+        val focus = knobFocus ?: return adapter.selectedEntity()
+        if (focus.entityId == Entity.PANEL_VOLUME_ID) return currentPanelVolumeEntity()
+        // Un lecteur change d'etat sans cesse : on reprend sa version fraiche, sinon la
+        // rotation repartirait du volume qu'il avait au moment du toucher.
+        return allEntities.firstOrNull { it.entityId == focus.entityId } ?: focus
+    }
 
     private fun drawKnob() {
         val idleFor = System.currentTimeMillis() - lastInteraction
@@ -862,11 +895,21 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             else -> "${(fraction * 100).toInt()}%"
         }
 
+        // Un pictogramme quand le bouton pilote autre chose que la grille : la note de
+        // musique pour un lecteur, le haut-parleur pour le volume du panneau.
+        val glyphe = when {
+            knobFocus == null -> null
+            entity.entityId == Entity.PANEL_VOLUME_ID -> MdiIcons.glyph("volume-high")
+            entity.domain == "media_player" -> MdiIcons.glyph("music")
+            else -> null
+        }
+
         knob.drawValue(
             entity.friendlyName,
             label,
             fraction,
-            if (adjusting) ADJUST_ACCENT else SELECT_ACCENT
+            if (adjusting) ADJUST_ACCENT else SELECT_ACCENT,
+            glyphe
         )
     }
 
@@ -1147,8 +1190,14 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         const val TAG_AREAS = "HaPanelAreas"
 
-        /** Au-dela, la grille defile plutot que d'ecraser les tuiles. */
-        const val MAX_TILE_ROWS = 3
+        /**
+         * Rangees de tuiles tenant a l'ecran avant que la grille ne defile.
+         *
+         * Portee de trois a quatre, et la hauteur des tuiles plafonnee en consequence :
+         * l'objectif est de faire tenir **deux pieces** sur une page, intertitres
+         * compris. Au-dela, defiler vaut mieux qu'ecraser.
+         */
+        const val MAX_TILE_ROWS = 4
 
 
         /** En dessous de ce délai entre deux impulsions, on considère la rotation rapide. */

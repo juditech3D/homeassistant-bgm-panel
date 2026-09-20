@@ -225,11 +225,13 @@ class TileAdapter(
         }
         holder.title.isEnabled = commandables.isNotEmpty()
         // Sélectionné au bouton rotatif : l'intertitre s'accentue, comme une tuile.
+        // L'état est porté par la vue pour que le fond suive, pas seulement le texte.
+        val elu = holder.bindingAdapterPosition == selected
+        holder.title.isSelected = elu
         holder.title.setTextColor(
             androidx.core.content.ContextCompat.getColor(
                 holder.itemView.context,
-                if (holder.bindingAdapterPosition == selected) R.color.accent
-                else R.color.text_secondary
+                if (elu) R.color.text_primary else R.color.text_secondary
             )
         )
         // Toucher l'intertitre le **sélectionne**, comme une tuile : l'écran rond

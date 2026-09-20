@@ -2,17 +2,29 @@
 <!--
     Intertitre de pièce dans la grille. Occupe toute la largeur : c'est le rôle du
     spanSizeLookup posé par le tableau de bord.
+
+    Ce n'est plus un simple titre mais une commande — il allume ou éteint la pièce
+    entière. Il en prend donc l'allure et la taille : fond arrondi, texte plus grand,
+    et une hauteur de 48 dp, en deçà de laquelle une cible tactile se manque au doigt.
 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/header_title"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp"
-    android:paddingTop="10dp"
-    android:paddingBottom="4dp"
+    android:minHeight="40dp"
+    android:layout_marginStart="6dp"
+    android:layout_marginEnd="6dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="2dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="7dp"
+    android:paddingBottom="7dp"
+    android:gravity="center_vertical"
     android:maxLines="1"
     android:ellipsize="end"
-    android:letterSpacing="0.08"
+    android:letterSpacing="0.06"
+    android:textSize="14sp"
+    android:textStyle="bold"
     android:textColor="@color/text_secondary"
-    android:textSize="12sp" />
+    android:background="@drawable/room_header_background" />

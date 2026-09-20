@@ -42,6 +42,9 @@ en vues Android classiques.
   de la ranger ailleurs, ou de créer une pièce propre au panneau — utile pour les entités
   que le serveur ne range nulle part. Ce classement local prime, et ne touche à rien côté
   serveur.
+- **Écran d'accueil** : les réglages permettent de faire du panneau son propre écran
+  d'accueil, pour qu'il démarre dessus sans passer par le menu du constructeur — et d'y
+  revenir, ou simplement de l'ouvrir, à tout moment.
 - **Commande de pièce** : l'intertitre compte ce qui est allumé et sert de commande.
   Le toucher l'élit — l'écran rond affiche alors la pièce entière — et l'appui sur le
   bouton rotatif l'allume ou l'éteint. Un appui long fait la même chose au doigt.

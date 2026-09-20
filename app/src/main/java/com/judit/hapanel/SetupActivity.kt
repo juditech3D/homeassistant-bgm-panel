@@ -280,20 +280,34 @@ class SetupActivity : AppCompatActivity() {
         }
         montrerEtatLanceur()
 
-        findViewById<Button>(R.id.launcher_take).setOnClickListener {
-            if (LauncherRole.take(this)) {
-                montrerEtatLanceur()
-                Toast.makeText(this, R.string.launcher_taken, Toast.LENGTH_SHORT).show()
-            } else {
+        // Un seul bouton pour le role d'accueil, qui bascule dans un sens ou dans
+        // l'autre selon l'etat courant : deux boutons dont un seul a du sens a la fois
+        // laissaient deviner lequel appuyer.
+        val bouton = findViewById<Button>(R.id.launcher_take)
+        fun montrerBouton() {
+            bouton.setText(
+                if (LauncherRole.isDefault(this)) R.string.launcher_give_back
+                else R.string.launcher_take
+            )
+        }
+        montrerBouton()
+
+        bouton.setOnClickListener {
+            if (LauncherRole.isDefault(this)) {
+                LauncherRole.giveBack(this)
+            } else if (!LauncherRole.take(this)) {
                 // Sans root, Android reserve ce choix a sa propre boite de dialogue.
                 Toast.makeText(this, R.string.launcher_use_system, Toast.LENGTH_LONG).show()
                 LauncherRole.openSystemChooser(this)
             }
+            montrerEtatLanceur()
+            montrerBouton()
         }
 
+        // Aller voir le menu du constructeur sans rien changer au role d'accueil : on
+        // peut vouloir y lancer une de ses applications et revenir.
         findViewById<Button>(R.id.launcher_release).setOnClickListener {
-            LauncherRole.release(this)
-            montrerEtatLanceur()
+            LauncherRole.openVendorLauncher(this)
         }
 
         findViewById<Button>(R.id.open_network).setOnClickListener {

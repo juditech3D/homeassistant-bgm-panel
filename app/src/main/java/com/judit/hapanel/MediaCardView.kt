@@ -35,6 +35,12 @@ class MediaCardView @JvmOverloads constructor(
     /** Appelé pour toute commande à transmettre à Home Assistant. */
     var onService: ((service: String, entityId: String, data: JSONObject?) -> Unit)? = null
 
+    /**
+     * Appelé quand on touche la carte ailleurs que sur une commande : le tableau de bord
+     * confie alors le lecteur au bouton rotatif, qui en règle le volume.
+     */
+    var onFocusRequest: ((Entity) -> Unit)? = null
+
     private val artwork: ImageView
     private val placeholder: TextView
     private val track: TextView
@@ -83,6 +89,11 @@ class MediaCardView @JvmOverloads constructor(
         previousButton.setOnClickListener { command("media_previous_track") }
         nextButton.setOnClickListener { command("media_next_track") }
         playButton.setOnClickListener { command("media_play_pause") }
+
+        // Toucher la carte — hors des boutons, qui consomment leur propre appui —
+        // confie le lecteur au bouton rotatif. C'est le même geste que sur une tuile :
+        // toucher élit, le bouton règle.
+        setOnClickListener { current()?.let { onFocusRequest?.invoke(it) } }
 
         volume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(bar: SeekBar?, value: Int, fromUser: Boolean) = Unit

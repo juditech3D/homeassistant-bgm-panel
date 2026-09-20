@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Avant-plan de l'icône : une maison, avec un cadran à l'intérieur pour évoquer le
+    bouton rotatif du panneau. Dessinée en vectoriel, donc nette de l'icône du menu
+    constructeur jusqu'aux réglages d'Android, sans embarquer cinq tailles de PNG.
+
+    Le gabarit adaptatif fait 108 dp, dont seuls les 72 dp centraux sont toujours
+    visibles : le tracé reste dans cette zone sûre.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Toit et murs. -->
+    <path
+        android:fillColor="#FF00AAFF"
+        android:pathData="M54,28 L82,50 L82,52 L76,52 L76,78 L32,78 L32,52 L26,52 L26,50 Z" />
+
+    <!-- Cadran creusé dans la maison : le bouton rotatif. -->
+    <path
+        android:fillColor="#FF0A1420"
+        android:pathData="M54,50 m-13,0 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 Z" />
+
+    <!-- Index du cadran, tourné vers le haut à droite comme un réglage en cours. -->
+    <path
+        android:fillColor="#FF00AAFF"
+        android:pathData="M54,42 L57,50 L51,50 Z" />
+
+</vector>

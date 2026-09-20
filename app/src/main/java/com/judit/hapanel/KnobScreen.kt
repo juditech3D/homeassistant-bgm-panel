@@ -98,17 +98,45 @@ class KnobScreen {
      * L'arc est ouvert en bas. Il part du bas à gauche (135°) et se remplit dans le sens
      * horaire sur 270°, comme le ferait un cadran : tourner à droite fait monter l'arc.
      */
-    fun drawValue(name: String, value: String, fraction: Float, accent: Int = Color.rgb(0, 170, 255)) {
+    fun drawValue(
+        name: String,
+        value: String,
+        fraction: Float,
+        accent: Int = Color.rgb(0, 170, 255),
+        glyph: String? = null
+    ) {
         canvas.drawColor(Color.BLACK)
         arcFg.color = accent
 
         canvas.drawArc(arcRect, 135f, 270f, false, arcBg)
         canvas.drawArc(arcRect, 135f, 270f * fraction.coerceIn(0f, 1f), false, arcFg)
 
+        // Un pictogramme au-dessus de la valeur dit de quoi il s'agit sans avoir a lire :
+        // une note de musique pour un lecteur, un haut-parleur pour le volume du panneau.
+        // Il remonte le reste du texte pour ne pas l'ecraser.
+        val decalage = if (glyph.isNullOrEmpty()) 0f else 14f
+        if (!glyph.isNullOrEmpty()) {
+            glyphPaint.color = accent
+            canvas.drawText(glyph, WIDTH / 2f, HEIGHT / 2f - 34f, glyphPaint)
+        }
+
         bigText.textSize = if (value.length > 4) 44f else 56f
-        canvas.drawText(value, WIDTH / 2f, HEIGHT / 2f + 12f, bigText)
-        canvas.drawText(ellipsize(name, 16), WIDTH / 2f, HEIGHT / 2f + 48f, smallText)
+        canvas.drawText(value, WIDTH / 2f, HEIGHT / 2f + 12f + decalage, bigText)
+        canvas.drawText(
+            ellipsize(name, 16), WIDTH / 2f, HEIGHT / 2f + 48f + decalage, smallText
+        )
         push()
+    }
+
+    /**
+     * Pinceau des pictogrammes. La police d'icones est chargee par le tableau de bord ;
+     * si elle manque, le glyphe ne s'affiche simplement pas et le reste tient debout.
+     */
+    private val glyphPaint = android.graphics.Paint().apply {
+        isAntiAlias = true
+        textAlign = android.graphics.Paint.Align.CENTER
+        textSize = 40f
+        typeface = MdiIcons.typeface()
     }
 
     /** Message court centré (erreurs de connexion, etc.). */
