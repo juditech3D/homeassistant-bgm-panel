@@ -358,6 +358,23 @@ class BluetoothController(private val context: Context) {
         }
     }
 
+    /**
+     * Vrai si un appareil est relié dans ce sens.
+     *
+     * Ne demande que l'état global du profil, sans ouvrir de mandataire : le tableau de
+     * bord appelle ceci à chaque rafraîchissement, et ouvrir un service à chaque fois
+     * serait ruineux.
+     */
+    fun hasConnection(mode: Mode): Boolean {
+        val a = adapter ?: return false
+        val profileId = if (mode == Mode.SORTIE) BluetoothProfile.A2DP else PROFILE_A2DP_SINK
+        return try {
+            a.getProfileConnectionState(profileId) == BluetoothProfile.STATE_CONNECTED
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     /** Résumé d'une ligne pour l'écran de réglages : ce qui est relié, et dans quel sens. */
     fun summary(mode: Mode): String {
         if (!isSupported) return context.getString(R.string.bt_unsupported)

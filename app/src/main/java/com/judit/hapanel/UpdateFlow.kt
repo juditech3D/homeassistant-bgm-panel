@@ -22,10 +22,19 @@ class UpdateFlow(private val activity: Activity, private val prefs: Prefs) {
     private val updater = Updater(activity)
 
     /**
+     * Appelé quand une mise à jour attend, avec son numéro de version — ou null quand il
+     * n'y a plus rien en attente. Le tableau de bord s'en sert pour allumer sa pastille.
+     */
+    var onPending: ((String?) -> Unit)? = null
+
+    /**
      * Vérifie et propose. [state] reçoit le compte rendu quand il est fourni ; sinon la
      * vérification reste muette tant qu'aucune version n'est disponible.
+     *
+     * [forcer] passe outre un report : c'est ce que fait la pastille du bandeau quand on
+     * la touche, et le bouton de vérification des réglages.
      */
-    fun check(state: TextView? = null) {
+    fun check(state: TextView? = null, forcer: Boolean = false) {
         val source = prefs.updateSource
         if (source.isBlank()) {
             state?.setText(R.string.update_no_source)
@@ -43,13 +52,21 @@ class UpdateFlow(private val activity: Activity, private val prefs: Prefs) {
                         state?.text = activity.getString(
                             R.string.update_available, result.release.versionName
                         )
-                        propose(result.release)
+                        onPending?.invoke(result.release.versionName)
+                        // Une version deja reportee ne reprend pas la parole a chaque
+                        // demarrage : la pastille du bandeau suffit a la rappeler.
+                        val reportee = prefs.updatePostponed == result.release.versionName
+                        if (forcer || !reportee) propose(result.release)
                     }
 
-                    is Updater.Result.UpToDate ->
+                    is Updater.Result.UpToDate -> {
                         state?.text = activity.getString(
                             R.string.update_up_to_date, result.versionName
                         )
+                        // Plus rien en attente : on efface le report et la pastille.
+                        prefs.updatePostponed = ""
+                        onPending?.invoke(null)
+                    }
 
                     is Updater.Result.Failed -> state?.text = result.reason
                 }
@@ -61,8 +78,14 @@ class UpdateFlow(private val activity: Activity, private val prefs: Prefs) {
         AlertDialog.Builder(activity)
             .setTitle(activity.getString(R.string.update_available, release.versionName))
             .setMessage(release.notes.ifBlank { release.url })
-            .setPositiveButton(R.string.update_install) { _, _ -> start(release) }
-            .setNegativeButton(R.string.update_later, null)
+            .setPositiveButton(R.string.update_install) { _, _ ->
+                prefs.updatePostponed = ""
+                start(release)
+            }
+            .setNegativeButton(R.string.update_later) { _, _ ->
+                prefs.updatePostponed = release.versionName
+                Toast.makeText(activity, R.string.update_postponed, Toast.LENGTH_SHORT).show()
+            }
             .show()
     }
 

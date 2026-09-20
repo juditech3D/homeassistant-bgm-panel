@@ -63,6 +63,8 @@ en vues Android classiques.
 - **Pont Zigbee** : le panneau embarque un coprocesseur Zigbee EmberZNet sur son port
   série ; l'application l'expose sur le réseau pour que **Zigbee2MQTT ou ZHA** s'en
   servent depuis le serveur Home Assistant.
+- **Indicateurs de bandeau** : état du Bluetooth audio — éteint, en attente, ou relié, et
+  dans quel sens — et pastille rappelant une mise à jour reportée.
 - **Mise à jour par le réseau** : le panneau va chercher lui-même sa nouvelle version, ce
   qui évite de le démonter de sa boîte d'encastrement.
 - **Chaque fonction s'active ou se désactive** séparément dans les réglages : un panneau

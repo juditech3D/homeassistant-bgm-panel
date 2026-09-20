@@ -180,6 +180,17 @@ class Prefs(context: Context) {
         get() = sp.getString(KEY_UPDATE_SOURCE, DEFAULT_UPDATE_SOURCE) ?: ""
         set(v) = sp.edit().putString(KEY_UPDATE_SOURCE, v.trim()).apply()
 
+    /**
+     * Version dont l'installation a été reportée. Vide = aucune.
+     *
+     * Reportée, une mise à jour ne doit plus interrompre à chaque démarrage — mais elle
+     * ne doit pas non plus s'oublier. Elle se rappelle alors par une pastille discrète
+     * dans le bandeau, qu'on touche quand on est prêt.
+     */
+    var updatePostponed: String
+        get() = sp.getString(KEY_UPDATE_POSTPONED, "") ?: ""
+        set(v) = sp.edit().putString(KEY_UPDATE_POSTPONED, v.trim()).apply()
+
     /** Chercher une mise à jour au démarrage, sans rien installer sans accord. */
     var updateAuto: Boolean
         get() = sp.getBoolean(KEY_UPDATE_AUTO, true)
@@ -323,6 +334,7 @@ class Prefs(context: Context) {
         const val KEY_WIFI_FALLBACK = "wifi_fallback"
         const val KEY_UPDATE_SOURCE = "update_source"
         const val KEY_UPDATE_AUTO = "update_auto"
+        const val KEY_UPDATE_POSTPONED = "update_postponed"
         const val KEY_MEDIA_CARD = "feature_media_card"
         const val KEY_CAMERAS_SHOWN = "cameras_shown"
         const val KEY_LOCAL_AREAS = "local_areas"

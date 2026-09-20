@@ -79,6 +79,16 @@
                     android:layout_marginEnd="6dp"
                     android:max="100" />
 
+                <!--
+                    Etat du Bluetooth audio : eteint, en attente, ou relie — et dans
+                    quel sens. L'icone seule le dit, sans occuper de place.
+                -->
+                <TextView
+                    android:id="@+id/panel_bluetooth"
+                    style="@style/HeaderIcon"
+                    android:contentDescription="@string/bt_title"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/panel_assistant"
                     style="@style/HeaderIcon"
@@ -121,6 +131,12 @@
                 android:text="@string/status_connecting"
                 android:textColor="@color/text_secondary"
                 android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/update_badge"
+                style="@style/HeaderIcon"
+                android:contentDescription="@string/update_check"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/cameras_button"

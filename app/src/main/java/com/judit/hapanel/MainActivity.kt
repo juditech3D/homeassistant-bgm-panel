@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var greeting: TextView
     private lateinit var weatherCard: WeatherCardView
     private lateinit var camerasButton: TextView
+    private lateinit var updateBadge: TextView
 
     /** Les pieces ne sont interrogees qu'une fois : elles ne changent pratiquement pas. */
     private var areasLoaded = false
@@ -61,6 +62,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var volumeBar: android.widget.SeekBar
     private lateinit var assistantIcon: TextView
     private lateinit var micSwitch: android.widget.Switch
+    private lateinit var bluetoothIcon: TextView
+    private var bluetooth: BluetoothController? = null
 
     /** Vrai pendant que le doigt tient la barre : on cesse d'ecraser la valeur reglee. */
     private var draggingVolume = false
@@ -133,7 +136,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         // passent d'abord.
         if (prefs.updateAuto) {
             window.decorView.postDelayed({
-                if (!isFinishing) UpdateFlow(this, prefs).check()
+                if (isFinishing) return@postDelayed
+                UpdateFlow(this, prefs).also { flow ->
+                    flow.onPending = { version -> showUpdateBadge(version) }
+                }.check()
             }, UPDATE_CHECK_DELAY_MS)
         }
 
@@ -191,6 +197,21 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         // La vue cameras n'apparait que si le panneau en connait : une icone qui ouvre
         // une page vide vaut moins qu'une icone absente.
         bindPanelControls()
+
+        // Pastille de mise a jour : allumee quand une version attend, notamment apres
+        // un report. Sans elle, une mise a jour repoussee s'oubliait.
+        updateBadge = findViewById(R.id.update_badge)
+        updateBadge.apply {
+            typeface = MdiIcons.typeface()
+            text = MdiIcons.glyph("package-down")
+            setTextColor(getColor(R.color.accent))
+            setOnClickListener {
+                lastInteraction = System.currentTimeMillis()
+                UpdateFlow(this@MainActivity, prefs).also { flow ->
+                    flow.onPending = { version -> showUpdateBadge(version) }
+                }.check(forcer = true)
+            }
+        }
 
         camerasButton = findViewById(R.id.cameras_button)
         camerasButton.apply {
@@ -702,6 +723,13 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         volumeBar = findViewById(R.id.panel_volume_bar)
         assistantIcon = findViewById(R.id.panel_assistant)
         micSwitch = findViewById(R.id.panel_mic)
+        bluetoothIcon = findViewById(R.id.panel_bluetooth)
+        bluetoothIcon.typeface = MdiIcons.typeface()
+        // Toucher l'icone mene a l'ecran ou l'on appaire et choisit le sens.
+        bluetoothIcon.setOnClickListener {
+            lastInteraction = System.currentTimeMillis()
+            startActivity(Intent(this, NetworkActivity::class.java))
+        }
 
         listOf(volumeIcon, assistantIcon).forEach { it.typeface = MdiIcons.typeface() }
 
@@ -815,8 +843,60 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             )
         }
 
+        refreshBluetoothIcon()
+
         panelControls.visibility =
             if (volumeVisible || assistantVisible) View.VISIBLE else View.GONE
+    }
+
+    /**
+     * Etat du Bluetooth audio dans le bandeau.
+     *
+     * Trois informations en une icone : allume ou non, le sens choisi, et la presence
+     * d'un appareil relie -- que la couleur d'accentuation signale. Masquee quand la
+     * fonction est decochee, pour ne pas encombrer un bandeau deja charge.
+     */
+    /** Allume ou eteint la pastille de mise a jour du bandeau. */
+    private fun showUpdateBadge(version: String?) {
+        if (!this::updateBadge.isInitialized) return
+        updateBadge.visibility = if (version == null) View.GONE else View.VISIBLE
+        if (version != null) {
+            updateBadge.contentDescription = getString(R.string.update_available, version)
+        }
+    }
+
+    private fun refreshBluetoothIcon() {
+        if (!this::bluetoothIcon.isInitialized) return
+        if (!prefs.bluetoothEnabled) {
+            bluetoothIcon.visibility = View.GONE
+            return
+        }
+
+        val bt = bluetooth ?: BluetoothController(this).also { bluetooth = it }
+        if (!bt.isSupported) {
+            bluetoothIcon.visibility = View.GONE
+            return
+        }
+        bluetoothIcon.visibility = View.VISIBLE
+
+        if (!bt.isEnabled) {
+            bluetoothIcon.text = MdiIcons.glyph("bluetooth-off")
+            bluetoothIcon.setTextColor(getColor(R.color.text_tertiary))
+            return
+        }
+
+        val mode = BluetoothController.Mode.from(prefs.bluetoothMode)
+        val relie = bt.hasConnection(mode)
+        bluetoothIcon.text = MdiIcons.glyph(
+            when {
+                !relie -> "bluetooth"
+                mode == BluetoothController.Mode.ENTREE -> "bluetooth-audio"
+                else -> "speaker-bluetooth"
+            }
+        )
+        bluetoothIcon.setTextColor(
+            getColor(if (relie) R.color.accent else R.color.text_secondary)
+        )
     }
 
     private fun refreshLocalTiles() = refreshPanelControls()

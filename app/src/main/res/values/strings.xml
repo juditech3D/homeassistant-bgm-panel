@@ -167,6 +167,7 @@
     <string name="update_checking">Recherche d\'une mise à jour…</string>
     <string name="update_up_to_date">Le panneau est à jour (%1$s)</string>
     <string name="update_available">Version %1$s disponible</string>
+    <string name="update_postponed">Reportée. La pastille du bandeau la rappellera.</string>
     <string name="update_install">Installer</string>
     <string name="update_later">Plus tard</string>
     <string name="update_downloading">Téléchargement… %1$d %%</string>
