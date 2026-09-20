@@ -50,10 +50,9 @@
 
         <!-- ========================= FONCTIONNALITÉS ========================= -->
 
-        <TextView
+        <include
             android:id="@+id/header_features"
-            style="@style/SectionHeader"
-            android:text="@string/section_features" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_features"
@@ -114,10 +113,9 @@
 
         <!-- ====================== RESEAU ET MISES A JOUR ====================== -->
 
-        <TextView
+        <include
             android:id="@+id/header_network"
-            style="@style/SectionHeader"
-            android:text="@string/section_network" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_network"
@@ -223,10 +221,9 @@
 
         <!-- ============================== ZIGBEE ============================== -->
 
-        <TextView
+        <include
             android:id="@+id/header_zigbee"
-            style="@style/SectionHeader"
-            android:text="@string/section_zigbee" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_zigbee"
@@ -301,10 +298,9 @@
 
         <!-- ============================ CONNEXION ============================ -->
 
-        <TextView
+        <include
             android:id="@+id/header_connection"
-            style="@style/SectionHeader"
-            android:text="@string/section_connection" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_connection"
@@ -369,10 +365,9 @@
 
         <!-- ============================= ENTITÉS ============================= -->
 
-        <TextView
+        <include
             android:id="@+id/header_entities"
-            style="@style/SectionHeader"
-            android:text="@string/section_entities" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_entities"
@@ -400,10 +395,9 @@
 
         <!-- ============================ AFFICHAGE ============================ -->
 
-        <TextView
+        <include
             android:id="@+id/header_display"
-            style="@style/SectionHeader"
-            android:text="@string/section_display" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_display"
@@ -482,10 +476,9 @@
 
         <!-- ======================== AUDIO ET SONNETTE ======================== -->
 
-        <TextView
+        <include
             android:id="@+id/header_audio"
-            style="@style/SectionHeader"
-            android:text="@string/section_audio" />
+            layout="@layout/view_settings_section" />
 
         <LinearLayout
             android:id="@+id/section_audio"

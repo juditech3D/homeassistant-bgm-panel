@@ -23,8 +23,8 @@ android {
         // garde le HTTP en clair autorisÃ© par dÃ©faut, ce qui est indispensable
         // pour joindre Home Assistant en local sans TLS.
         targetSdk = 27
-        versionCode = 15
-        versionName = "1.5"
+        versionCode = 16
+        versionName = "1.6"
     }
 
     signingConfigs {

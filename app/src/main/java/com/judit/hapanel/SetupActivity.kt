@@ -93,13 +93,34 @@ class SetupActivity : AppCompatActivity() {
 
         // La connexion est repliée dès que le panneau est configuré : elle ne sert plus,
         // et une fausse manœuvre au doigt sur l'adresse ou le jeton le déconnecterait.
-        setupSection(R.id.header_features, R.id.section_features, false)
-        setupSection(R.id.header_connection, R.id.section_connection, !prefs.isConfigured)
-        setupSection(R.id.header_entities, R.id.section_entities, false)
-        setupSection(R.id.header_display, R.id.section_display, false)
-        setupSection(R.id.header_network, R.id.section_network, false)
-        setupSection(R.id.header_zigbee, R.id.section_zigbee, false)
-        setupSection(R.id.header_audio, R.id.section_audio, false)
+        setupSection(
+            R.id.header_features, R.id.section_features, false,
+            "tune-variant", R.color.domain_default, R.string.section_features
+        )
+        setupSection(
+            R.id.header_connection, R.id.section_connection, !prefs.isConfigured,
+            "server-network", R.color.status_ok, R.string.section_connection
+        )
+        setupSection(
+            R.id.header_entities, R.id.section_entities, false,
+            "view-grid-outline", R.color.domain_light, R.string.section_entities
+        )
+        setupSection(
+            R.id.header_display, R.id.section_display, false,
+            "monitor", R.color.domain_cover, R.string.section_display
+        )
+        setupSection(
+            R.id.header_network, R.id.section_network, false,
+            "wifi", R.color.domain_sensor, R.string.section_network
+        )
+        setupSection(
+            R.id.header_zigbee, R.id.section_zigbee, false,
+            "z-wave", R.color.domain_media, R.string.section_zigbee
+        )
+        setupSection(
+            R.id.header_audio, R.id.section_audio, false,
+            "music", R.color.domain_security, R.string.section_audio
+        )
 
         // Toucher le fond referme le clavier, qui masque sinon la moitié de l'écran.
         findViewById<View>(R.id.setup_root).setOnTouchListener { v, _ ->
@@ -417,15 +438,37 @@ class SetupActivity : AppCompatActivity() {
         if (this::pinnedField.isInitialized) pinnedField.setText(prefs.pinned)
     }
 
-    /** Relie un en-tête à sa section et gère le repli, en préfixant d'un chevron. */
-    private fun setupSection(headerId: Int, sectionId: Int, expandedAtStart: Boolean) {
-        val header = findViewById<TextView>(headerId)
+    /**
+     * Relie une carte d'en-tête à sa section et gère le repli.
+     *
+     * La présentation s'inspire de l'interface du constructeur : une pastille colorée
+     * porte l'icône de la rubrique, le libellé suit, et un chevron dit si la section est
+     * dépliée. On repère une rubrique à sa couleur avant d'avoir lu son nom.
+     */
+    private fun setupSection(
+        headerId: Int,
+        sectionId: Int,
+        expandedAtStart: Boolean,
+        glyphe: String,
+        couleur: Int,
+        libelle: Int
+    ) {
+        val header = findViewById<View>(headerId)
         val section = findViewById<View>(sectionId)
-        val label = header.text.toString()
+
+        val icone = header.findViewById<TextView>(R.id.section_icon)
+        val titre = header.findViewById<TextView>(R.id.section_title)
+        val chevron = header.findViewById<TextView>(R.id.section_chevron)
+
+        icone.typeface = MdiIcons.typeface()
+        icone.text = MdiIcons.glyph(glyphe)
+        icone.backgroundTintList = android.content.res.ColorStateList.valueOf(getColor(couleur))
+        titre.setText(libelle)
+        chevron.typeface = MdiIcons.typeface()
 
         fun render(expanded: Boolean) {
             section.visibility = if (expanded) View.VISIBLE else View.GONE
-            header.text = (if (expanded) "▾  " else "▸  ") + label
+            chevron.text = MdiIcons.glyph(if (expanded) "chevron-down" else "chevron-right")
         }
 
         render(expandedAtStart)

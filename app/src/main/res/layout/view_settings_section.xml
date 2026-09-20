@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    En-tête de section des réglages, en carte.
+
+    Inspiré de l'interface du constructeur, qui présente ses réglages en liste de cartes
+    à pastille colorée : on repère une rubrique à sa couleur avant d'avoir lu son nom,
+    et la cible tactile est franche. Le chevron dit que la section se déplie.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="56dp"
+    android:layout_marginTop="10dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:background="@drawable/settings_section_background">
+
+    <TextView
+        android:id="@+id/section_icon"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:textColor="#FFFFFFFF"
+        android:textSize="19sp"
+        android:background="@drawable/settings_icon_background" />
+
+    <TextView
+        android:id="@+id/section_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="14dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="@color/text_primary"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/section_chevron"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:textColor="@color/text_tertiary"
+        android:textSize="18sp" />
+
+</LinearLayout>
