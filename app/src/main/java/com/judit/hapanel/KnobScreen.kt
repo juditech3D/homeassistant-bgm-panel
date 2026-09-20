@@ -78,6 +78,24 @@ class KnobScreen {
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val dateFormat = SimpleDateFormat("EEE d MMM", Locale.getDefault())
 
+    /**
+     * Rappel des coups de sonnette du jour, deja mis en mots. Vide pour n'en rien dire.
+     *
+     * Le texte est pose par le tableau de bord, et non compose ici : ce cadran ne
+     * connait pas de contexte Android, donc pas de ressources, donc pas de traduction.
+     * C'est aussi l'occasion de ne pas parcourir un dossier a chaque seconde pour
+     * compter des fichiers qui changent deux fois par jour.
+     */
+    var doorbellNotice: String = ""
+
+    /** L'encre du rappel : ambrée, la seule couleur chaude d'un cadran par ailleurs froid. */
+    private val alertText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.rgb(255, 183, 77)
+        textAlign = Paint.Align.CENTER
+        textSize = 17f
+        isFakeBoldText = true
+    }
+
     @Volatile
     var available: Boolean = File(FB).canWrite()
         private set
@@ -86,9 +104,22 @@ class KnobScreen {
     fun drawClock() {
         canvas.drawColor(Color.BLACK)
         val now = Date()
+
+        // Le fuseau est repris a chaque dessin. SimpleDateFormat fige celui qui avait
+        // cours a sa construction : sur un panneau livre avec un fuseau d'usine, corrige
+        // apres coup, le cadran serait reste a l'heure d'avant jusqu'au prochain
+        // redemarrage de l'application. Constate sur ce panneau, regle sur New York.
+        val fuseau = java.util.TimeZone.getDefault()
+        timeFormat.timeZone = fuseau
+        dateFormat.timeZone = fuseau
+
         bigText.textSize = 62f
         canvas.drawText(timeFormat.format(now), WIDTH / 2f, HEIGHT / 2f + 10f, bigText)
         canvas.drawText(dateFormat.format(now), WIDTH / 2f, HEIGHT / 2f + 48f, smallText)
+
+        if (doorbellNotice.isNotBlank()) {
+            canvas.drawText(doorbellNotice, WIDTH / 2f, HEIGHT - 38f, alertText)
+        }
         push()
     }
 

@@ -350,4 +350,8 @@ Déposez-en un dans %1$s, par le partage réseau, puis revenez ici.</string>
     <string name="apps_cannot_launch">Cette application ne propose pas d\'écran à ouvrir.</string>
     <string name="apps_no_settings">Fiche Android indisponible sur ce panneau.</string>
     <string name="apps_no_uninstall">Désinstallation indisponible sur ce panneau.</string>
+    <plurals name="knob_rang_today">
+        <item quantity="one">%1$d sonnerie</item>
+        <item quantity="other">%1$d sonneries</item>
+    </plurals>
 </resources>

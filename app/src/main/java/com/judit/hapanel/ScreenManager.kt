@@ -88,11 +88,24 @@ class ScreenManager(private val prefs: Prefs) {
 
     // ------------------------------------------------------------ veille active
 
-    /** À appeler à chaque interaction : toucher, bouton rotatif, proximité. */
+    /**
+     * À appeler à chaque interaction : toucher, bouton rotatif, proximité.
+     *
+     * Le réveil ne se fie pas au seul état mémorisé : si la dalle est éteinte alors
+     * qu'on se croyait éveillé, on rallume quand même. Sur un panneau encastré, un
+     * désaccord entre ce que l'application croit et ce que le matériel fait se paie
+     * cher — l'écran reste noir et plus rien n'y donne accès. Le matériel fait donc foi.
+     */
     fun noteActivity() {
-        if (isAsleep) wake()
+        if (isAsleep || backlightIsOff()) wake()
         hideScreensaver()
         rearm()
+    }
+
+    /** Vrai quand le rétroéclairage est à zéro, quoi qu'en pense [isAsleep]. */
+    private fun backlightIsOff(): Boolean {
+        if (fallbackOnly) return false
+        return read(ACTUAL_BRIGHTNESS)?.toIntOrNull() == 0
     }
 
     /**
@@ -215,10 +228,80 @@ class ScreenManager(private val prefs: Prefs) {
     }
 
     init {
-        // Le gestionnaire se declare des sa construction : les autres ecrans n'ont pas
-        // de raison de connaitre le tableau de bord pour pouvoir lui signaler un
-        // toucher.
+        // L'instance precedente est desarmee avant d'etre remplacee.
+        //
+        // Le tableau de bord en construit une a chaque creation, et il est recree plus
+        // souvent qu'on ne croit : apres une mise a jour, apres un retour depuis le
+        // menu du constructeur, apres une reprise par le systeme. Sans cette ligne,
+        // l'ancienne gardait sa minuterie armee sur le fil principal : elle eteignait
+        // la dalle et notait *chez elle* que l'ecran dormait, pendant que la nouvelle
+        // -- celle que les touchers atteignent -- se croyait eveillee et ne rallumait
+        // donc rien. Ecran noir, touchers pris en compte, et aucun moyen d'en sortir.
+        current?.dispose()
         current = this
+    }
+
+    /**
+     * Suspend la veille tant qu'une autre application est au premier plan.
+     *
+     * Les touchers d'une application tierce -- un navigateur ouvert depuis « Mes
+     * applications », l'ecran de desinstallation d'Android -- ne nous parviennent pas.
+     * Continuer a compter dans ce cas reviendrait a eteindre la dalle sous les doigts de
+     * quelqu'un qui s'en sert, et sans moyen de la rallumer puisque ses touchers ne
+     * seraient pas davantage entendus.
+     *
+     * La contrepartie est assumee : laisser une autre application ouverte maintient
+     * l'ecran allume. Mieux vaut une dalle allumee pour rien qu'un panneau aveugle.
+     */
+    fun watchForeground(application: android.app.Application) {
+        application.registerActivityLifecycleCallbacks(
+            object : android.app.Application.ActivityLifecycleCallbacks {
+                /**
+                 * Les ecrans de l'application qu'on a vus demarrer.
+                 *
+                 * Un ensemble et non un compteur : l'observation commence a la
+                 * construction du tableau de bord, donc apres le demarrage de l'ecran
+                 * qui l'a lance. L'arret de celui-ci arrive alors sans le demarrage
+                 * correspondant, et un compteur tomberait a zero alors que le tableau
+                 * de bord est bien a l'ecran -- ce qui desarmait la veille pour de bon.
+                 *
+                 * Les references sont faibles : un ecran detruit sans passer par
+                 * onActivityStopped ne doit pas le retenir en memoire.
+                 */
+                private val demarrees: MutableSet<android.app.Activity> =
+                    java.util.Collections.newSetFromMap(
+                        java.util.WeakHashMap<android.app.Activity, Boolean>()
+                    )
+
+                override fun onActivityStarted(activity: android.app.Activity) {
+                    val premier = demarrees.isEmpty()
+                    demarrees.add(activity)
+                    if (premier) noteActivity()
+                }
+
+                override fun onActivityStopped(activity: android.app.Activity) {
+                    // Jamais vue demarrer : on n'en conclut rien.
+                    if (!demarrees.remove(activity)) return
+                    if (demarrees.isNotEmpty()) return
+                    // On passe la main : plus de minuterie, et la dalle reste allumee
+                    // pour celui qui prend notre place.
+                    dispose()
+                    if (isAsleep) wake()
+                }
+
+                override fun onActivityCreated(a: android.app.Activity, b: android.os.Bundle?) = Unit
+                override fun onActivityResumed(a: android.app.Activity) = Unit
+                override fun onActivityPaused(a: android.app.Activity) = Unit
+                override fun onActivitySaveInstanceState(a: android.app.Activity, b: android.os.Bundle) = Unit
+                override fun onActivityDestroyed(a: android.app.Activity) = Unit
+            }
+        )
+    }
+
+    /** Desarme tout : plus aucune minuterie de cette instance ne se declenchera. */
+    private fun dispose() {
+        ui.removeCallbacks(sleepTask)
+        ui.removeCallbacks(screensaverTask)
     }
 
     companion object {

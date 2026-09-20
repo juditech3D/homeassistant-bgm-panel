@@ -354,4 +354,8 @@ Drop one into %1$s over the network share, then come back here.</string>
     <string name="apps_cannot_launch">This app offers no screen to open.</string>
     <string name="apps_no_settings">The Android app page is unavailable on this panel.</string>
     <string name="apps_no_uninstall">Uninstalling is unavailable on this panel.</string>
+    <plurals name="knob_rang_today">
+        <item quantity="one">%1$d ring</item>
+        <item quantity="other">%1$d rings</item>
+    </plurals>
 </resources>

@@ -54,6 +54,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var greeting: TextView
     private lateinit var weatherCard: WeatherCardView
     private lateinit var camerasButton: TextView
+    /** Instant du dernier comptage des sonneries, pour ne pas relire a chaque seconde. */
+    private var lastDoorbellCount = 0L
+
     private lateinit var historyBadge: TextView
     private lateinit var updateBadge: TextView
 
@@ -269,6 +272,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         applyWallpapers()
 
         screen = ScreenManager(prefs).apply {
+            watchForeground(application)
             onScreensaverChanged = { showing ->
                 runOnUiThread {
                     if (showing) startScreensaver() else stopScreensaver()
@@ -1016,6 +1020,33 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * fonction est decochee, pour ne pas encombrer un bandeau deja charge.
      */
     /**
+     * Met a jour le rappel des sonneries du jour sur le cadran rond.
+     *
+     * Le cadran est le seul element du panneau qui reste visible quand l'ecran principal
+     * s'eteint : c'est donc la qu'un rappel a le plus de chances d'etre vu en rentrant.
+     *
+     * Le dossier n'est relu qu'une fois par minute. Le cadran se redessine chaque
+     * seconde, et compter des fichiers a cette cadence userait le processeur pour une
+     * information qui bouge deux fois par jour.
+     */
+    private fun refreshKnobDoorbells() {
+        if (!prefs.historyEnabled) {
+            knob.doorbellNotice = ""
+            return
+        }
+        val maintenant = System.currentTimeMillis()
+        if (maintenant - lastDoorbellCount < DOORBELL_COUNT_INTERVAL_MS) return
+        lastDoorbellCount = maintenant
+
+        val combien = DoorbellHistory.countOn(prefs, DoorbellHistory.today())
+        knob.doorbellNotice = if (combien > 0) {
+            resources.getQuantityString(R.plurals.knob_rang_today, combien, combien)
+        } else {
+            ""
+        }
+    }
+
+    /**
      * Allume ou eteint l'alerte de memoire pleine.
      *
      * Elle reste affichee tant qu'on n'a pas fait de place : personne n'est devant le
@@ -1130,6 +1161,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             // Le focus du bandeau retombe en meme temps que l'ecran rond : sans cela, le
             // bouton continuerait a regler le volume longtemps apres qu'on l'a quitte.
             if (knobFocus != null) ui.post { knobFocus = null }
+            refreshKnobDoorbells()
             knob.drawClock()
             return
         }
@@ -1474,6 +1506,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
          * sur un ciel clair.
          */
         const val SCRIM = 0xB3060810.toInt()
+
+        /** Une minute entre deux comptages des captures du jour. */
+        const val DOORBELL_COUNT_INTERVAL_MS = 60_000L
 
         const val EXTRA_TEST_DOORBELL = "test_doorbell"
 
