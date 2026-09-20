@@ -89,6 +89,14 @@
             android:name=".FileShareService"
             android:exported="false" />
 
+        <!-- Historique des coups de sonnette : une capture horodatee par sonnerie. -->
+        <activity
+            android:name=".HistoryActivity"
+            android:exported="false"
+            android:label="@string/history_title"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|keyboardHidden|screenSize" />
+
         <!-- Choix du fond : ecran de veille et tableau de bord, meme grille. -->
         <activity
             android:name=".WallpaperPickerActivity"

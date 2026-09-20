@@ -311,4 +311,25 @@
     <string name="weather_auto">Automatique (la première du serveur)</string>
     <string name="weather_loading">Recherche des entités météo…</string>
     <string name="weather_none_found">Aucune entité météo sur le serveur</string>
+    <!-- Historique des coups de sonnette -->
+    <string name="history_title">Historique des sonneries</string>
+    <string name="history_open">Voir l\'historique des sonneries…</string>
+    <string name="history_enable">Garder une capture de la caméra à chaque coup de sonnette</string>
+    <string name="history_help">Chaque sonnerie enregistre une image horodatée, consultable ici et dans le partage réseau. Les captures restent sur le panneau et sont visibles de tout le réseau local si le partage est actif.</string>
+    <string name="history_max">Captures conservées</string>
+    <string name="history_recycle">Effacer la plus ancienne quand la mémoire est pleine</string>
+    <string name="history_count">%1$d capture(s) · %2$d Mo libres</string>
+    <string name="history_empty">Aucune sonnerie enregistrée pour le moment.</string>
+    <string name="history_select_all">Tout cocher</string>
+    <string name="history_delete_all">Tout supprimer</string>
+    <string name="history_delete_selected">Supprimer (%1$d)</string>
+    <string name="history_delete">Supprimer</string>
+    <string name="history_confirm_title">Supprimer définitivement ?</string>
+    <string name="history_confirm_one">%1$s</string>
+    <string name="history_confirm_many">%1$d captures seront supprimées. C\'est irréversible.</string>
+    <string name="history_storage_full">Mémoire pleine : plus aucune sonnerie n\'est enregistrée. Touchez pour faire le ménage.</string>
+    <string name="history_rang_today">%1$d sonnerie(s) aujourd\'hui</string>
+    <string name="history_test">TEST</string>
+    <string name="history_all_days">Tous les jours</string>
+    <string name="history_delete_tests">Effacer les tests</string>
 </resources>

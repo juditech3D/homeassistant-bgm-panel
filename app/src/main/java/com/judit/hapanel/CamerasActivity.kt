@@ -66,6 +66,31 @@ class CamerasActivity : AppCompatActivity() {
         super.attachBaseContext(LocaleHelper.wrap(base))
     }
 
+    /**
+     * Affiche le nombre de sonneries du jour, s'il y en a eu.
+     *
+     * Relu a chaque retour sur cet ecran plutot que garde en memoire : quelqu'un peut
+     * avoir sonne pendant qu'on regardait ailleurs, et une pastille figee serait pire
+     * que pas de pastille du tout.
+     */
+    private fun refreshRangToday() {
+        val jour = DoorbellHistory.today()
+        val combien = DoorbellHistory.countOn(prefs, jour)
+        val pastille = findViewById<TextView>(R.id.cameras_rang_today) ?: return
+        pastille.visibility = if (combien > 0) View.VISIBLE else View.GONE
+        if (combien > 0) {
+            pastille.text = getString(R.string.history_rang_today, combien)
+            pastille.setOnClickListener {
+                HistoryActivity.open(this@CamerasActivity, jour)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshRangToday()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MdiIcons.load(this)
@@ -75,6 +100,12 @@ class CamerasActivity : AppCompatActivity() {
         grid = findViewById(R.id.cameras_grid)
         empty = findViewById(R.id.cameras_empty)
         fullscreen = findViewById(R.id.cameras_fullscreen)
+
+        findViewById<TextView>(R.id.cameras_history).apply {
+            typeface = MdiIcons.typeface()
+            text = MdiIcons.glyph("history")
+            setOnClickListener { HistoryActivity.open(this@CamerasActivity) }
+        }
 
         findViewById<TextView>(R.id.cameras_choose).apply {
             typeface = MdiIcons.typeface()

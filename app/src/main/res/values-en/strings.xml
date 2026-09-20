@@ -315,4 +315,25 @@
     <string name="weather_auto">Automatic (the server\'s first one)</string>
     <string name="weather_loading">Looking for weather entities…</string>
     <string name="weather_none_found">No weather entity on the server</string>
+    <!-- Doorbell history -->
+    <string name="history_title">Doorbell history</string>
+    <string name="history_open">See the doorbell history…</string>
+    <string name="history_enable">Keep a camera snapshot at every ring</string>
+    <string name="history_help">Every ring saves a timestamped image, viewable here and in the network share. Snapshots stay on the panel, and are visible to the whole local network while the share is on.</string>
+    <string name="history_max">Snapshots kept</string>
+    <string name="history_recycle">Delete the oldest when memory is full</string>
+    <string name="history_count">%1$d snapshot(s) · %2$d MB free</string>
+    <string name="history_empty">No ring recorded yet.</string>
+    <string name="history_select_all">Tick all</string>
+    <string name="history_delete_all">Delete all</string>
+    <string name="history_delete_selected">Delete (%1$d)</string>
+    <string name="history_delete">Delete</string>
+    <string name="history_confirm_title">Delete for good?</string>
+    <string name="history_confirm_one">%1$s</string>
+    <string name="history_confirm_many">%1$d snapshots will be deleted. This cannot be undone.</string>
+    <string name="history_storage_full">Memory full: no ring is being recorded. Tap to clear some space.</string>
+    <string name="history_rang_today">%1$d ring(s) today</string>
+    <string name="history_test">TEST</string>
+    <string name="history_all_days">All days</string>
+    <string name="history_delete_tests">Delete the tests</string>
 </resources>

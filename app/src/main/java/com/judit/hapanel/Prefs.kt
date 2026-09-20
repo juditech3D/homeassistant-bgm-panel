@@ -349,6 +349,45 @@ class Prefs(context: Context) {
      * fournisseur de secours. Le panneau doit montrer celle de l'endroit ou il est
      * accroche, qui n'est pas forcement la premiere que le serveur renvoie.
      */
+    /**
+     * Garder une capture de la camera a chaque coup de sonnette.
+     *
+     * Eteint par defaut : c'est une image de ce qui se passe devant la porte, conservee
+     * sur l'appareil et visible de tout le reseau local par le partage de fichiers. Cela
+     * se decide, ce ne se subit pas.
+     */
+    var historyEnabled: Boolean
+        get() = sp.getBoolean(KEY_HISTORY, false)
+        set(v) = sp.edit().putBoolean(KEY_HISTORY, v).apply()
+
+    /**
+     * Le nombre de captures conservees, les plus anciennes partant les premieres.
+     *
+     * 200 captures pesent une quarantaine de megaoctets, sans commune mesure avec les
+     * 2,6 Go libres du panneau -- mais un dossier sans plafond finirait par les remplir,
+     * et un panneau a court d'espace ne peut plus se mettre a jour.
+     */
+    var historyMax: Int
+        get() = sp.getInt(KEY_HISTORY_MAX, 200)
+        set(v) = sp.edit().putInt(KEY_HISTORY_MAX, v.coerceIn(1, 5000)).apply()
+
+    /**
+     * Effacer les plus anciennes captures quand la memoire vient a manquer.
+     *
+     * Eteint par defaut : effacer un enregistrement est irreversible, et le faire sans
+     * qu'on l'ait demande serait s'arroger un droit qui ne nous revient pas. Tant qu'il
+     * est eteint, une memoire pleine arrete l'historique et le signale a l'ecran.
+     */
+    var historyRecycle: Boolean
+        get() = sp.getBoolean(KEY_HISTORY_RECYCLE, false)
+        set(v) = sp.edit().putBoolean(KEY_HISTORY_RECYCLE, v).apply()
+
+    /** Ou ranger les captures. Reglable, pour pointer une carte SD le cas echeant. */
+    var historyFolder: String
+        get() = sp.getString(KEY_HISTORY_FOLDER, DoorbellHistory.FOLDER)
+            ?: DoorbellHistory.FOLDER
+        set(v) = sp.edit().putString(KEY_HISTORY_FOLDER, v.trim()).apply()
+
     var weatherEntity: String
         get() = sp.getString(KEY_WEATHER, "") ?: ""
         set(v) = sp.edit().putString(KEY_WEATHER, v).apply()
@@ -422,6 +461,10 @@ class Prefs(context: Context) {
         /** Le dossier que le diaporama partageait avec les fonds d'ecran, jusqu'a la 1.12. */
         const val ANCIEN_DOSSIER_PHOTOS = "/sdcard/HAPanel/fonds"
         const val KEY_WEATHER = "weather_entity"
+        const val KEY_HISTORY = "history_enabled"
+        const val KEY_HISTORY_MAX = "history_max"
+        const val KEY_HISTORY_FOLDER = "history_folder"
+        const val KEY_HISTORY_RECYCLE = "history_recycle"
         const val KEY_SHARE = "file_share"
         const val KEY_SHARE_PORT = "file_share_port"
         const val KEY_SHARE_PASSWORD = "file_share_password"

@@ -69,7 +69,7 @@ class FileShareService : Service() {
                 root().mkdirs()
                 // Un dossier par usage, pour que rien ne se melange : les fonds du
                 // tableau de bord, les photos du diaporama, la musique, les carillons.
-                for (nom in listOf("fonds", "diaporama", "musique", "carillons")) {
+                for (nom in listOf("fonds", "diaporama", "musique", "carillons", "historique")) {
                     File(root(), nom).mkdirs()
                 }
 

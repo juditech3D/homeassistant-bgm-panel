@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private lateinit var greeting: TextView
     private lateinit var weatherCard: WeatherCardView
     private lateinit var camerasButton: TextView
+    private lateinit var historyBadge: TextView
     private lateinit var updateBadge: TextView
 
     /** Les pieces ne sont interrogees qu'une fois : elles ne changent pratiquement pas. */
@@ -212,6 +213,17 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         // Pastille de mise a jour : allumee quand une version attend, notamment apres
         // un report. Sans elle, une mise a jour repoussee s'oubliait.
+        historyBadge = findViewById(R.id.history_badge)
+        historyBadge.apply {
+            typeface = MdiIcons.typeface()
+            text = MdiIcons.glyph("alert-circle-outline")
+            setTextColor(getColor(R.color.domain_security))
+            setOnClickListener {
+                lastInteraction = System.currentTimeMillis()
+                HistoryActivity.open(this@MainActivity)
+            }
+        }
+
         updateBadge = findViewById(R.id.update_badge)
         updateBadge.apply {
             typeface = MdiIcons.typeface()
@@ -444,7 +456,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             intent.removeExtra(EXTRA_TEST_DOORBELL)
             ui.postDelayed({
                 chime?.play()
-                showDoorbellCamera()
+                showDoorbellCamera(essai = true)
             }, TEST_DOORBELL_DELAY_MS)
         }
     }
@@ -687,7 +699,15 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * Affiche la caméra choisie pendant quelques secondes. Appelé quand on sonne :
      * l'écran est réveillé d'abord, faute de quoi la vidéo jouerait dans le noir.
      */
-    fun showDoorbellCamera() {
+    /**
+     * Affiche la camera de la sonnette.
+     *
+     * [essai] distingue le bouton de test d'un vrai coup de sonnette. La capture est
+     * gardee dans les deux cas -- un essai qui ne laisserait aucune trace ne prouverait
+     * pas que l'historique fonctionne -- mais elle porte alors une mention, pour qu'on
+     * ne prenne pas un essai pour une visite.
+     */
+    fun showDoorbellCamera(essai: Boolean = false) {
         val entityId = prefs.doorbellCamera
         if (entityId.isBlank()) return
 
@@ -703,9 +723,49 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             )
             val name = entity?.friendlyName ?: entityId
             val accessToken = entity?.attributes?.optString("access_token").orEmpty()
+            // Une source go2rtc n'a pas d'entite, donc pas de nom lisible : son
+            // identifiant brut, « go2rtc:double », n'a rien a faire incruste sur une
+            // capture qu'on montrera peut-etre a quelqu'un.
+            val lisible = name.removePrefix(Prefs.GO2RTC_PREFIX)
+                .replace('_', ' ')
+                .replaceFirstChar { it.uppercase() }
+            armHistoryCapture(lisible, essai)
             camera.start(prefs, entityId, name, accessToken)
             ui.removeCallbacks(hideCamera)
             ui.postDelayed(hideCamera, prefs.doorbellCameraSeconds * 1000L)
+        }
+    }
+
+    /**
+     * Prepare la capture d'historique pour le coup de sonnette qui commence.
+     *
+     * Une seule image est gardee par sonnerie, la premiere qui arrive : c'est le moment
+     * ou quelqu'un est devant la porte, et enregistrer les vingt suivantes ne dirait
+     * rien de plus tout en remplissant le dossier.
+     *
+     * L'ecriture se fait sur le fil de lecture de la camera, celui qui livre l'image :
+     * compresser un JPEG sur le fil d'affichage saccaderait justement la vue qu'on est
+     * en train de regarder.
+     */
+    private fun armHistoryCapture(cameraName: String, essai: Boolean) {
+        if (!prefs.historyEnabled) {
+            camera.onFrame = null
+            return
+        }
+        camera.onFrame = { image ->
+            // Desarme avant d'ecrire : les images continuent d'arriver pendant la
+            // compression, et sans cela on en enregistrerait plusieurs.
+            camera.onFrame = null
+            val resultat = try {
+                DoorbellHistory.save(this, image, cameraName, prefs, essai)
+            } catch (e: Exception) {
+                android.util.Log.w(TAG_AREAS, "historique : ${e.message}")
+                DoorbellHistory.Result.Failed
+            }
+            // L'alerte de memoire pleine reste affichee jusqu'a ce qu'on fasse le menage :
+            // un message fugace passerait inapercu, personne n'etant devant le panneau au
+            // moment ou l'on sonne.
+            runOnUiThread { showHistoryAlert(resultat is DoorbellHistory.Result.StorageFull) }
         }
     }
 
@@ -955,6 +1015,18 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
      * d'un appareil relie -- que la couleur d'accentuation signale. Masquee quand la
      * fonction est decochee, pour ne pas encombrer un bandeau deja charge.
      */
+    /**
+     * Allume ou eteint l'alerte de memoire pleine.
+     *
+     * Elle reste affichee tant qu'on n'a pas fait de place : personne n'est devant le
+     * panneau au moment ou l'on sonne, et un message fugace ne serait jamais vu. La
+     * toucher ouvre l'historique, d'ou l'on peut supprimer.
+     */
+    private fun showHistoryAlert(pleine: Boolean) {
+        if (!this::historyBadge.isInitialized) return
+        historyBadge.visibility = if (pleine) View.VISIBLE else View.GONE
+    }
+
     /** Allume ou eteint la pastille de mise a jour du bandeau. */
     private fun showUpdateBadge(version: String?) {
         if (!this::updateBadge.isInitialized) return

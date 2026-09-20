@@ -35,6 +35,33 @@
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
+            <!--
+                Qui a sonne aujourd'hui. La pastille ne parait que s'il y a eu au moins
+                une sonnerie : un compteur a zero en permanence n'apprend rien et
+                finirait par ne plus etre lu. La toucher ouvre la galerie, deja filtree
+                sur la journee.
+            -->
+            <TextView
+                android:id="@+id/cameras_rang_today"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:background="@drawable/room_chip"
+                android:textColor="@color/background"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/cameras_history"
+                style="@style/HeaderIcon"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="@string/history_title" />
+
             <TextView
                 android:id="@+id/cameras_choose"
                 style="@style/HeaderIcon"

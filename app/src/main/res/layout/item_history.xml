@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Une capture de l'historique.
+
+    La case à cocher et la croix se font face, en haut de la vignette : deux gestes
+    distincts, aux deux coins opposés, pour qu'un doigt qui vise l'un n'atteigne pas
+    l'autre. Toutes deux sont posées sur un fond, sans quoi elles disparaîtraient sur
+    une image claire.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:background="@drawable/card_background">
+
+        <ImageView
+            android:id="@+id/history_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/history_title" />
+
+        <CheckBox
+            android:id="@+id/history_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="4dp"
+            android:background="#99000000"
+            android:padding="4dp" />
+
+        <!-- Mention d'essai, pour ne pas prendre un test pour une vraie visite. -->
+        <TextView
+            android:id="@+id/history_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_margin="4dp"
+            android:paddingStart="7dp"
+            android:paddingEnd="7dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:background="#B3000000"
+            android:text="@string/history_test"
+            android:textColor="@color/domain_light"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/history_remove"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="4dp"
+            android:gravity="center"
+            android:background="#99000000"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/history_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp" />
+</LinearLayout>

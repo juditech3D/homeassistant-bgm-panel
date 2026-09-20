@@ -394,11 +394,21 @@ class CameraView @JvmOverloads constructor(
         null
     }
 
+    /**
+     * Appele a chaque image recue, sur le fil de lecture.
+     *
+     * L'image passee appartient a cette vue et sera recyclee : qui veut la garder en
+     * fait une copie sans tarder. C'est par la que l'historique des sonneries prend sa
+     * capture.
+     */
+    var onFrame: ((Bitmap) -> Unit)? = null
+
     private fun publish(bitmap: Bitmap?) {
         if (bitmap == null) return
         val old = frame
         frame = bitmap
         old?.recycle()
+        onFrame?.invoke(bitmap)
         postInvalidate()
     }
 

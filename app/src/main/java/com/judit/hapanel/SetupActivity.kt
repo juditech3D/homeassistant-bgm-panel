@@ -42,6 +42,9 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var fileSharePortField: EditText
     private lateinit var fileSharePasswordField: EditText
     private lateinit var fileShareState: TextView
+    private lateinit var historyEnableField: CheckBox
+    private lateinit var historyMaxField: EditText
+    private lateinit var historyRecycleField: CheckBox
     private lateinit var weatherField: Spinner
     private lateinit var languageField: Spinner
     private lateinit var chimeChoiceField: Spinner
@@ -164,6 +167,9 @@ class SetupActivity : AppCompatActivity() {
         fileSharePortField = findViewById(R.id.file_share_port)
         fileSharePasswordField = findViewById(R.id.file_share_password)
         fileShareState = findViewById(R.id.file_share_state)
+        historyEnableField = findViewById(R.id.history_enable)
+        historyMaxField = findViewById(R.id.history_max)
+        historyRecycleField = findViewById(R.id.history_recycle)
         weatherField = findViewById(R.id.weather_entity)
         languageField = findViewById(R.id.language_choice)
         chimeChoiceField = findViewById(R.id.chime_choice)
@@ -226,6 +232,10 @@ class SetupActivity : AppCompatActivity() {
         fileSharePortField.setText(prefs.fileSharePort.toString())
         fileSharePasswordField.setText(prefs.fileSharePassword)
         showShareAddress()
+
+        historyEnableField.isChecked = prefs.historyEnabled
+        historyMaxField.setText(prefs.historyMax.toString())
+        historyRecycleField.isChecked = prefs.historyRecycle
 
         loadCameras()
         loadWeather()
@@ -468,6 +478,10 @@ class SetupActivity : AppCompatActivity() {
         // musique : c'est donc elle qui dit si le son part bien vers l'enceinte Bluetooth.
         // Les fonds : ecran de veille d'un cote, tableau de bord de l'autre, mais la
         // meme grille de vignettes -- seule la destination change.
+        findViewById<Button>(R.id.history_open).setOnClickListener {
+            HistoryActivity.open(this)
+        }
+
         findViewById<Button>(R.id.open_saver_wallpaper).setOnClickListener {
             WallpaperPickerActivity.open(this, dashboard = false)
         }
@@ -523,6 +537,9 @@ class SetupActivity : AppCompatActivity() {
         prefs.pinned = pinnedField.text.toString()
         prefs.useTls = tlsField.isChecked
         prefs.publishSensors = publishField.isChecked
+        prefs.historyEnabled = historyEnableField.isChecked
+        prefs.historyMax = historyMaxField.text.toString().toIntOrNull() ?: 200
+        prefs.historyRecycle = historyRecycleField.isChecked
         prefs.weatherEntity =
             weatherValues.getOrElse(weatherField.selectedItemPosition) { "" }
         prefs.fileShareEnabled = fileShareField.isChecked

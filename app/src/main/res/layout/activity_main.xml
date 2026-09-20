@@ -139,6 +139,16 @@
                 android:contentDescription="@string/update_check"
                 android:visibility="gone" />
 
+            <!--
+                Alerte de memoire pleine. Masquee tant que tout va bien : une pastille
+                permanente de plus n'apprendrait rien et encombrerait le bandeau.
+            -->
+            <TextView
+                android:id="@+id/history_badge"
+                style="@style/HeaderIcon"
+                android:contentDescription="@string/history_storage_full"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/cameras_button"
                 style="@style/HeaderIcon"
