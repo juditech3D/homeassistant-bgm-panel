@@ -214,19 +214,63 @@ class ScreenManager(private val prefs: Prefs) {
         null
     }
 
-    private companion object {
-        const val TAG = "ScreenManager"
-        const val DIR = "/sys/class/backlight/backlight"
-        const val BRIGHTNESS = "$DIR/brightness"
-        const val ACTUAL_BRIGHTNESS = "$DIR/actual_brightness"
-        const val MAX_BRIGHTNESS = "$DIR/max_brightness"
-        const val BL_POWER = "$DIR/bl_power"
+    init {
+        // Le gestionnaire se declare des sa construction : les autres ecrans n'ont pas
+        // de raison de connaitre le tableau de bord pour pouvoir lui signaler un
+        // toucher.
+        current = this
+    }
+
+    companion object {
+        /**
+         * Le gestionnaire en service, s'il y en a un.
+         *
+         * La minuterie de veille appartient au tableau de bord, mais **tous** les ecrans
+         * doivent la rearmer. Sans cela, l'ecran s'eteint pendant qu'on regle quelque
+         * chose dans la configuration -- et comme les reglages ne signalaient aucun
+         * toucher, plus rien ne le rallumait : le panneau devenait aveugle jusqu'a ce
+         * qu'on revienne au tableau de bord a l'aveuglette.
+         *
+         * Le defaut existait depuis toujours ; il ne se voyait pas tant que `bl_power`
+         * n'eteignait rien reellement.
+         */
+        @Volatile
+        var current: ScreenManager? = null
+            private set
+
+        /** Un ecran signale qu'on vient de s'en servir. */
+        fun noteInteraction() {
+            current?.noteActivity()
+        }
+
+        /**
+         * Le premier toucher sur un ecran endormi ne sert qu'a reveiller.
+         *
+         * Renvoie vrai quand l'evenement a ete absorbe. Sans cela, le doigt qui rallume
+         * cocherait au passage la case qui se trouve dessous, ce qu'on ne verrait meme
+         * pas puisque l'ecran etait noir au moment du geste.
+         */
+        fun consumeWakeTouch(event: android.view.MotionEvent): Boolean {
+            val manager = current ?: return false
+            if (!manager.isAsleep) return false
+            if (event.actionMasked == android.view.MotionEvent.ACTION_DOWN) {
+                manager.noteActivity()
+            }
+            return true
+        }
+
+        private const val TAG = "ScreenManager"
+        private const val DIR = "/sys/class/backlight/backlight"
+        private const val BRIGHTNESS = "$DIR/brightness"
+        private const val ACTUAL_BRIGHTNESS = "$DIR/actual_brightness"
+        private const val MAX_BRIGHTNESS = "$DIR/max_brightness"
+        private const val BL_POWER = "$DIR/bl_power"
 
         /** Constantes du sous-système fbdev. */
-        const val FB_BLANK_UNBLANK = 0
-        const val FB_BLANK_POWERDOWN = 4
+        private const val FB_BLANK_UNBLANK = 0
+        private const val FB_BLANK_POWERDOWN = 4
 
         /** En dessous, l'écran est illisible et on croirait l'appareil éteint. */
-        const val MIN_PERCENT = 5
+        private const val MIN_PERCENT = 5
     }
 }

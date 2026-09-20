@@ -73,6 +73,22 @@ class WallpaperPickerActivity : AppCompatActivity() {
         super.attachBaseContext(LocaleHelper.wrap(base))
     }
 
+    /**
+     * Tout geste sur cet ecran reporte la mise en veille.
+     *
+     * La minuterie appartient au tableau de bord, mais elle court aussi pendant qu'on
+     * est ici : sans ce rappel, l'ecran s'eteindrait au milieu d'un reglage.
+     */
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        ScreenManager.noteInteraction()
+    }
+
+    override fun dispatchTouchEvent(event: android.view.MotionEvent): Boolean {
+        if (ScreenManager.consumeWakeTouch(event)) return true
+        return super.dispatchTouchEvent(event)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MdiIcons.load(this)
