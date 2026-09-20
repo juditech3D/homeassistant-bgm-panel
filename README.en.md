@@ -90,10 +90,27 @@ over the network for Zigbee2MQTT or ZHA. *(See the [limitations](#-known-limitat
 
 These panels are **multiroom background-music hosts** built on Tuya hardware, sold without
 a stable brand: the same board reappears under dozens of shop names. The system calls
-itself `px30_evb`, Rockchip's generic development board, with no manufacturer name — so
-there is **no single part number to quote**.
+itself `px30_evb`, Rockchip's generic development board, with no manufacturer name.
 
-The only reliable way to know is to check:
+The stock app, however, does give a spec sheet — *Settings → About*:
+
+![The vendor spec sheet](docs/images/specifications.png)
+
+| | |
+|---|---|
+| 🏷️ **Model** | **F7** |
+| 🧠 **CPU** | ARM Cortex-A35 quad-core 1.5 GHz *(this is the Rockchip PX30)* |
+| 📐 **Display** | IPS LCD 1024×600 |
+| 💾 **Memory** | 2 GB RAM, 8 GB storage |
+| 🔈 **Amplifier** | 2 × 10–25 W peak, 4–8 Ω impedance |
+| ⚡ **Power** | 94–250 V AC |
+
+> [!WARNING]
+> “F7” is the original manufacturer's designation, not a retail part number: shops replace
+> it with their own, and the same name is used elsewhere for other products. It helps you
+> recognise the hardware once the panel is in your hands, **not order one**.
+
+The only reliable way to know before buying is to check:
 
 ```bash
 adb shell getprop ro.product.model

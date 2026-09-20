@@ -92,9 +92,27 @@ l'expose sur le réseau pour Zigbee2MQTT ou ZHA. *(Voir les [limites](#-limites-
 Ces panneaux sont des **centrales de sonorisation multiroom** (« background music host »)
 à base Tuya, vendues sans marque stable : le même matériel réapparaît sous des dizaines de
 noms de boutique. Le système se déclare `px30_evb`, la carte de développement générique de
-Rockchip, sans nom constructeur — il n'y a donc **pas de référence unique à citer**.
+Rockchip, sans nom constructeur.
 
-La seule façon fiable de savoir, c'est de vérifier :
+L'application d'origine, elle, donne une fiche — *Paramètres → À propos* :
+
+![La fiche du constructeur](docs/images/specifications.png)
+
+| | |
+|---|---|
+| 🏷️ **Modèle** | **F7** |
+| 🧠 **Processeur** | ARM Cortex-A35 quadri-cœur 1,5 GHz *(c'est le Rockchip PX30)* |
+| 📐 **Écran** | IPS LCD 1024×600 |
+| 💾 **Mémoire** | 2 Go de RAM, 8 Go de stockage |
+| 🔈 **Amplificateur** | 2 × 10–25 W crête, impédance 4–8 Ω |
+| ⚡ **Alimentation** | 94–250 V alternatif |
+
+> [!WARNING]
+> « F7 » est la désignation du fabricant d'origine, pas une référence de vente : les
+> boutiques la remplacent par la leur, et le même nom sert ailleurs à d'autres produits.
+> Elle aide à reconnaître le matériel une fois le panneau en main, **pas à le commander**.
+
+La seule façon fiable de savoir avant d'acheter, c'est de vérifier :
 
 ```bash
 adb shell getprop ro.product.model

@@ -68,7 +68,34 @@ potentiomètre de volume.
 | Audio | codec RK809 : 1 sortie amplifiée + 2 micros + **haut-parleur intégré**. Aucun tuner radio : les applications de radio présentes sont purement logicielles |
 | Réseau | Ethernet `192.168.1.50`, Wi-Fi `192.168.1.51` |
 | Stockage | 4 Go de partition `/data`, **2,6 Go libres**. Lecteur de carte SD présent (contrôleur `dwmmc_rockchip`) mais **aucune carte insérée** |
-| Autres | récepteur infrarouge, caméra frontale |
+| Autres | récepteur infrarouge **déclaré mais muet** (voir plus bas), caméra frontale |
+
+### La fiche du constructeur
+
+L'application d'origine porte une page *À propos* — `com.sznaner.settings`,
+`AboutProductActivity` — qui donne enfin une désignation à ce matériel :
+
+![Fiche de spécifications](images/specifications.png)
+
+```
+Model No.: F7
+CPU: ARM Quad-Core Cortex-A35 1.5 GHz
+Display: IPS LCD 1024*600
+Memory Storage: RAM 2GB  ROM 8GB
+Amplifier: 2*(10-25W) (MAX)
+Output Impedance: 4-8 ohm
+Power Supply: AC 94V-250V
+```
+
+Deux remarques.
+
+**« F7 » n'est pas une référence de vente.** C'est la désignation du fabricant
+d'origine, que les boutiques remplacent par la leur ; elle sert à reconnaître le
+matériel une fois le panneau en main, pas à le commander.
+
+**Le stockage annoncé diffère de celui mesuré.** La fiche dit 8 Go de ROM, là où
+`/data` n'offre que 4 Go : le reste part dans les partitions système, comme
+toujours. C'est la valeur mesurée qui compte pour savoir ce qu'on peut installer.
 
 ### Bornier externe
 
