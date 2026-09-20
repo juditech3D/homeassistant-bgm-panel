@@ -42,6 +42,7 @@
     <string name="hint_go2rtc">Adresse go2rtc, ex. http://192.168.1.10:1984</string>
     <string name="hint_doorbell_camera_seconds">Durée d\'affichage (s)</string>
     <string name="doorbell_test">Tester la sonnerie complète (carillon + caméra)</string>
+    <string name="feature_microphone">Micro / mode privé</string>
     <string name="assistant_enabled">Assistant vocal (nécessite le micro)</string>
     <string name="hint_brightness">Luminosité écran (5 à 100 %)</string>
     <string name="wake_proximity">Réveiller l\'écran quand quelqu\'un s\'approche</string>
@@ -111,6 +112,12 @@
     <string name="cameras_choose">Choisir les caméras à afficher</string>
     <string name="cameras_all">Toutes</string>
     <string name="cameras_loading">Recherche des caméras…</string>
+
+    <!-- Pièces attribuées depuis le panneau -->
+    <string name="area_choose">Ranger « %1$s » dans…</string>
+    <string name="area_new">Nouvelle pièce…</string>
+    <string name="area_none">Aucune pièce</string>
+    <string name="area_name_hint">Nom de la pièce</string>
 
     <string name="greeting_morning">Bonjour</string>
     <string name="greeting_afternoon">Bon après-midi</string>

@@ -18,7 +18,8 @@ import androidx.recyclerview.widget.RecyclerView
  * partout : la sélection au bouton rotatif les enjambe, et `entityAt` rend null pour eux.
  */
 class TileAdapter(
-    private val onTap: (position: Int) -> Unit
+    private val onTap: (position: Int) -> Unit,
+    private val onLongPress: (position: Int) -> Unit = {}
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     /** Une ligne de la grille : soit un intertitre de pièce, soit une entité. */
@@ -193,6 +194,12 @@ class TileAdapter(
         // Propagé aux enfants par la hiérarchie de vues : c'est ce qui colore l'icône.
         holder.itemView.isActivated = e.isOn
         holder.itemView.setOnClickListener { onTap(holder.bindingAdapterPosition) }
+        // L'appui long range l'entite dans une piece. C'est le seul autre geste utile
+        // sur une tuile, et il n'y a pas la place pour un bouton par case.
+        holder.itemView.setOnLongClickListener {
+            onLongPress(holder.bindingAdapterPosition)
+            true
+        }
     }
 
     class TileHolder(view: View) : RecyclerView.ViewHolder(view) {

@@ -51,6 +51,28 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
     /** Les pieces ne sont interrogees qu'une fois : elles ne changent pratiquement pas. */
     private var areasLoaded = false
+
+    /** Les pieces declarees par Home Assistant, avant toute correction locale. */
+    private var serverAreas: Map<String, String> = emptyMap()
+
+    private lateinit var panelControls: View
+    private lateinit var volumeIcon: TextView
+    private lateinit var volumeBar: android.widget.SeekBar
+    private lateinit var assistantIcon: TextView
+    private lateinit var micIcon: TextView
+
+    /** Vrai pendant que le doigt tient la barre : on cesse d'ecraser la valeur reglee. */
+    private var draggingVolume = false
+
+    /**
+     * Entite que le bouton rotatif pilote a la place de la tuile selectionnee.
+     *
+     * Le volume du panneau a quitte la grille pour le bandeau, mais on veut pouvoir le
+     * regler au bouton comme avant : toucher son icone le place ici, l'ecran rond montre
+     * le haut-parleur, et la rotation agit dessus. Le focus retombe des qu'on touche une
+     * tuile ou apres un moment d'inactivite.
+     */
+    private var knobFocus: Entity? = null
     private lateinit var empty: TextView
     private lateinit var tiles: RecyclerView
 
@@ -130,7 +152,10 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         empty = findViewById(R.id.empty)
         tiles = findViewById(R.id.tiles)
 
-        adapter = TileAdapter { position -> onTileTapped(position) }
+        adapter = TileAdapter(
+            onTap = { position -> onTileTapped(position) },
+            onLongPress = { position -> chooseAreaFor(position) }
+        )
         gridLayout = GridLayoutManager(this, TILE_COLUMNS)
         // Un intertitre de piece occupe toute la largeur ; une tuile, une colonne.
         gridLayout.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
@@ -153,6 +178,8 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         }
         // La vue cameras n'apparait que si le panneau en connait : une icone qui ouvre
         // une page vide vaut moins qu'une icone absente.
+        bindPanelControls()
+
         camerasButton = findViewById(R.id.cameras_button)
         camerasButton.apply {
             typeface = MdiIcons.typeface()
@@ -427,7 +454,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         val sinceLastRotation = now - lastRotation
         lastRotation = now
         lastInteraction = now
-        val entity = adapter.selectedEntity()
+        val entity = knobEntity()
 
         // Le volume du panneau est local : on l'applique tout de suite, sans passer par
         // Home Assistant ni par la temporisation d'envoi.
@@ -520,6 +547,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun onTileTapped(position: Int) {
         if (position < 0) return
         lastInteraction = System.currentTimeMillis()
+        // Choisir une tuile reprend la main au bandeau : le bouton pilote de nouveau la
+        // grille, faute de quoi il continuerait a regler le volume.
+        knobFocus = null
         adapter.select(position)
         pendingValue = null
 
@@ -591,18 +621,136 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     )
 
     /** Rafraîchit les cartes locales sans toucher au reste de la grille. */
-    private fun refreshLocalTiles() {
-        if (prefs.panelVolumeEnabled) adapter.update(currentPanelVolumeEntity())
-        if (prefs.assistantEnabled) {
-            adapter.update(currentAssistantEntity())
-            adapter.update(Entity.panelMicrophone(prefs.microphoneEnabled))
+    /**
+     * Branche les commandes du panneau, dans le bandeau.
+     *
+     * Elles ne sont plus des tuiles : ce ne sont pas des entites de la maison, et elles
+     * occupaient trois cases parmi les lampes. Le volume se regle a la barre, sans avoir
+     * a selectionner quoi que ce soit au prealable.
+     */
+    private fun bindPanelControls() {
+        panelControls = findViewById(R.id.panel_controls)
+        volumeIcon = findViewById(R.id.panel_volume_icon)
+        volumeBar = findViewById(R.id.panel_volume_bar)
+        assistantIcon = findViewById(R.id.panel_assistant)
+        micIcon = findViewById(R.id.panel_mic)
+
+        listOf(volumeIcon, assistantIcon, micIcon).forEach { it.typeface = MdiIcons.typeface() }
+
+        // Toucher l'icone confie le volume au bouton rotatif, comme du temps ou il
+        // s'agissait d'une tuile : l'ecran rond montre le haut-parleur et la rotation
+        // agit dessus. Un second appui rend la main.
+        volumeIcon.setOnClickListener {
+            lastInteraction = System.currentTimeMillis()
+            knobFocus = if (knobFocus?.entityId == Entity.PANEL_VOLUME_ID) {
+                null
+            } else {
+                currentPanelVolumeEntity()
+            }
+            refreshKnobNow()
+            refreshPanelControls()
         }
+
+        volumeBar.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(bar: android.widget.SeekBar?, v: Int, user: Boolean) {
+                if (user) lastInteraction = System.currentTimeMillis()
+            }
+
+            override fun onStartTrackingTouch(bar: android.widget.SeekBar?) {
+                draggingVolume = true
+            }
+
+            override fun onStopTrackingTouch(bar: android.widget.SeekBar?) {
+                draggingVolume = false
+                audio?.setVolume((bar?.progress ?: 0) / 100f)
+                // Le bip donne la mesure de ce qu'on vient de regler : sans lui, on ne
+                // sait ce qu'on a fait qu'a la prochaine diffusion.
+                audio?.beep()
+                refreshPanelControls()
+                hardware?.publishNow()
+            }
+        })
+
+        assistantIcon.setOnClickListener {
+            lastInteraction = System.currentTimeMillis()
+            assistant?.toggle()
+            refreshPanelControls()
+        }
+
+        micIcon.setOnClickListener {
+            lastInteraction = System.currentTimeMillis()
+            setMicrophoneEnabled(!prefs.microphoneEnabled)
+        }
+
+        refreshPanelControls()
     }
 
-    /** Rafraîchit la seule tuile locale, sans toucher au reste de la grille. */
-    private fun refreshPanelTile() {
-        adapter.update(currentPanelVolumeEntity())
+    /** Remet les commandes du bandeau en accord avec l'etat reel du panneau. */
+    private fun refreshPanelControls() {
+        if (!this::panelControls.isInitialized) return
+
+        val volumeVisible = prefs.panelVolumeEnabled
+        volumeIcon.visibility = if (volumeVisible) View.VISIBLE else View.GONE
+        volumeBar.visibility = if (volumeVisible) View.VISIBLE else View.GONE
+        volumeIcon.setTextColor(
+            getColor(
+                if (knobFocus?.entityId == Entity.PANEL_VOLUME_ID) R.color.accent
+                else R.color.text_secondary
+            )
+        )
+        if (volumeVisible && !draggingVolume) {
+            val niveau = audio?.volume() ?: 0f
+            volumeBar.progress = (niveau * 100).toInt()
+            volumeIcon.text = MdiIcons.glyph(
+                when {
+                    niveau <= 0.01f -> "volume-off"
+                    niveau < 0.34f -> "volume-low"
+                    niveau < 0.67f -> "volume-medium"
+                    else -> "volume-high"
+                }
+            )
+        }
+
+        val assistantVisible = prefs.assistantEnabled
+        assistantIcon.visibility = if (assistantVisible) View.VISIBLE else View.GONE
+        micIcon.visibility = if (assistantVisible) View.VISIBLE else View.GONE
+        if (assistantVisible) {
+            val etat = assistant?.state ?: VoiceAssistant.State.IDLE
+            assistantIcon.text = MdiIcons.glyph(
+                when (etat) {
+                    VoiceAssistant.State.LISTENING -> "microphone"
+                    VoiceAssistant.State.THINKING -> "dots-horizontal"
+                    VoiceAssistant.State.SPEAKING -> "account-voice"
+                    else -> "microphone-outline"
+                }
+            )
+            assistantIcon.setTextColor(
+                getColor(
+                    if (etat == VoiceAssistant.State.IDLE) R.color.text_secondary
+                    else R.color.accent
+                )
+            )
+
+            // Mode prive : l'icone barree et la couleur d'alerte rendent l'etat lisible
+            // d'un coup d'oeil depuis l'autre bout de la piece.
+            micIcon.text = MdiIcons.glyph(
+                if (prefs.microphoneEnabled) "microphone" else "microphone-off"
+            )
+            micIcon.setTextColor(
+                getColor(
+                    if (prefs.microphoneEnabled) R.color.text_secondary else R.color.status_error
+                )
+            )
+        }
+
+        panelControls.visibility =
+            if (volumeVisible || assistantVisible) View.VISIBLE else View.GONE
     }
+
+    private fun refreshLocalTiles() = refreshPanelControls()
+
+    /** Le volume a change cote materiel : on remet la barre en accord. */
+    private fun refreshPanelTile() = refreshPanelControls()
 
     private val sendPending = Runnable {
         val entity = adapter.selectedEntity() ?: return@Runnable
@@ -625,12 +773,20 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         knobHandler.post { drawKnob() }
     }
 
+    /** L'entite que le bouton pilote : le focus du bandeau, sinon la tuile selectionnee. */
+    private fun knobEntity(): Entity? =
+        knobFocus?.let { if (it.entityId == Entity.PANEL_VOLUME_ID) currentPanelVolumeEntity() else it }
+            ?: adapter.selectedEntity()
+
     private fun drawKnob() {
         val idleFor = System.currentTimeMillis() - lastInteraction
-        val entity = adapter.selectedEntity()
+        val entity = knobEntity()
 
         if (entity == null || idleFor > IDLE_TIMEOUT_MS) {
             if (pendingValue != null) ui.post { pendingValue = null }
+            // Le focus du bandeau retombe en meme temps que l'ecran rond : sans cela, le
+            // bouton continuerait a regler le volume longtemps apres qu'on l'a quitte.
+            if (knobFocus != null) ui.post { knobFocus = null }
             knob.drawClock()
             return
         }
@@ -689,6 +845,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     private fun applySelection() {
         val shown = selectEntities(allEntities)
         adapter.submit(shown)
+        applyAreas()
         refreshWeather()
         refreshCamerasButton()
         refreshMediaCard()
@@ -747,10 +904,84 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             if (pieces.isEmpty()) return@thread
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
-                adapter.areas = pieces
+                serverAreas = pieces
+                applyAreas()
                 applySelection()
             }
         }
+    }
+
+    /**
+     * Compose la carte des pieces : celle du serveur, corrigee par les affectations
+     * faites sur le panneau. Le local prime — c'est la que l'on range ce que Home
+     * Assistant laisse sans piece, et c'est la aussi qu'on rectifie un rangement.
+     */
+    private fun applyAreas() {
+        adapter.areas = serverAreas + prefs.localAreaMap()
+    }
+
+    /**
+     * Range une entite dans une piece, depuis le panneau.
+     *
+     * Les pieces proposees sont celles deja connues — du serveur comme du panneau — plus
+     * la possibilite d'en creer une. Rien n'est envoye a Home Assistant : le rangement
+     * reste propre a cet ecran, ce qui permet d'organiser le tableau de bord sans
+     * toucher a l'installation.
+     */
+    private fun chooseAreaFor(position: Int) {
+        val entity = adapter.entityAt(position) ?: return
+        lastInteraction = System.currentTimeMillis()
+
+        val connues = (serverAreas.values + prefs.localAreaMap().values)
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+        val actuelle = adapter.areas[entity.entityId].orEmpty()
+
+        val choix = connues + listOf(
+            getString(R.string.area_new), getString(R.string.area_none)
+        )
+        val libelles = choix.mapIndexed { index, nom ->
+            if (index < connues.size && nom == actuelle) "$nom  ·  ✓" else nom
+        }.toTypedArray()
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.area_choose, entity.friendlyName))
+            .setItems(libelles) { _, index ->
+                when (index) {
+                    connues.size -> askNewArea(entity)
+                    connues.size + 1 -> setArea(entity, "")
+                    else -> setArea(entity, connues[index])
+                }
+            }
+            .show()
+    }
+
+    /** Demande le nom d'une nouvelle piece, puis y range l'entite. */
+    private fun askNewArea(entity: Entity) {
+        val champ = android.widget.EditText(this).apply {
+            hint = getString(R.string.area_name_hint)
+            setSingleLine()
+        }
+        val boite = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 0)
+            addView(champ)
+        }
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(R.string.area_new)
+            .setView(boite)
+            .setPositiveButton(R.string.save) { _, _ ->
+                setArea(entity, champ.text.toString())
+            }
+            .setNegativeButton(R.string.picker_cancel, null)
+            .show()
+    }
+
+    private fun setArea(entity: Entity, piece: String) {
+        prefs.setLocalArea(entity.entityId, piece)
+        applyAreas()
+        applySelection()
     }
 
     private fun refreshWeather() {
@@ -786,21 +1017,16 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
 
-        // Les cartes locales viennent en tête : volume, puis assistant et mode privé
-        // s'ils sont activés. Ce sont les commandes les plus utilisées au quotidien.
-        val local = ArrayList<Entity>()
-        if (prefs.panelVolumeEnabled) local.add(currentPanelVolumeEntity())
-        if (prefs.assistantEnabled) {
-            local.add(currentAssistantEntity())
-            local.add(Entity.panelMicrophone(prefs.microphoneEnabled))
-        }
+        // Les commandes du panneau -- volume, assistant, mode prive -- ne figurent plus
+        // ici : elles vivent dans le bandeau. Ce ne sont pas des entites de la maison,
+        // et elles occupaient trois cases parmi les lampes.
 
         if (pinned.isNotEmpty()) {
             val byId = all.associateBy { it.entityId }
-            return local + pinned.mapNotNull { byId[it] }
+            return pinned.mapNotNull { byId[it] }
         }
 
-        return local + all
+        return all
             .filter { it.domain in Entity.INTERESTING }
             .filter { it.state != "unavailable" && it.state != "unknown" }
             .sortedWith(

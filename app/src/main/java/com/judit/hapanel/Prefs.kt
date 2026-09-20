@@ -113,6 +113,40 @@ class Prefs(context: Context) {
         set(v) = sp.edit().putInt(KEY_ZIGBEE_PORT, v.coerceIn(1024, 65535)).apply()
 
     /**
+     * Pièces attribuées depuis le panneau, sous la forme `entite=Pièce`, séparées par
+     * des points-virgules.
+     *
+     * Home Assistant reste la source de référence : le panneau lit ses zones et s'y
+     * conforme. Mais toutes les entités n'y sont pas rangées — chez l'auteur, 528 le
+     * sont sur bien davantage — et il serait absurde d'avoir à ouvrir le serveur pour
+     * classer une lampe. Une affectation faite ici **prime** sur celle du serveur, ce
+     * qui permet aussi de corriger un rangement qui ne convient pas, sans rien toucher
+     * à l'installation.
+     */
+    var localAreas: String
+        get() = sp.getString(KEY_LOCAL_AREAS, "") ?: ""
+        set(v) = sp.edit().putString(KEY_LOCAL_AREAS, v.trim()).apply()
+
+    /** Les affectations locales, sous forme exploitable. */
+    fun localAreaMap(): Map<String, String> = localAreas
+        .split(';')
+        .mapNotNull { paire ->
+            val sep = paire.indexOf('=')
+            if (sep <= 0) return@mapNotNull null
+            val entite = paire.substring(0, sep).trim()
+            val piece = paire.substring(sep + 1).trim()
+            if (entite.isEmpty() || piece.isEmpty()) null else entite to piece
+        }
+        .toMap()
+
+    /** Range une entité dans une pièce, ou l'en retire si [piece] est vide. */
+    fun setLocalArea(entityId: String, piece: String) {
+        val carte = localAreaMap().toMutableMap()
+        if (piece.isBlank()) carte.remove(entityId) else carte[entityId] = piece.trim()
+        localAreas = carte.entries.joinToString(";") { "${it.key}=${it.value}" }
+    }
+
+    /**
      * Caméras retenues dans la vue caméras, séparées par des virgules.
      * Vide = toutes celles que le panneau découvre.
      */
@@ -291,6 +325,7 @@ class Prefs(context: Context) {
         const val KEY_UPDATE_AUTO = "update_auto"
         const val KEY_MEDIA_CARD = "feature_media_card"
         const val KEY_CAMERAS_SHOWN = "cameras_shown"
+        const val KEY_LOCAL_AREAS = "local_areas"
         const val KEY_ZIGBEE = "feature_zigbee"
         const val KEY_ZIGBEE_DEVICE = "zigbee_device"
         const val KEY_ZIGBEE_PORT = "zigbee_port"

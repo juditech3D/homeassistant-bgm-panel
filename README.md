@@ -38,8 +38,13 @@ en vues Android classiques.
   clé avec possibilité de l'afficher, et audio Bluetooth **dans les deux sens** — recevoir
   la musique d'un téléphone, ou diffuser vers une enceinte.
 - **Regroupement par pièce** : les tuiles sont rangées sous un intertitre par pièce,
-  d'après les zones déclarées dans Home Assistant. Les entités sans pièce vont dans
-  « Autres », et la grille reste plate tant qu'il n'y a rien à distinguer.
+  d'après les zones déclarées dans Home Assistant. Un **appui long sur une tuile** permet
+  de la ranger ailleurs, ou de créer une pièce propre au panneau — utile pour les entités
+  que le serveur ne range nulle part. Ce classement local prime, et ne touche à rien côté
+  serveur.
+- **Commandes du panneau dans le bandeau** : volume à la barre, assistant vocal et mode
+  privé en icônes. Toucher l'icône du volume le confie au bouton rotatif, qui l'affiche
+  sur l'écran rond.
 - **Vue caméras** : une grille de vignettes rafraîchies en continu, l'appui ouvre le
   plein écran avec zoom et déplacement. Chaque carte prend la forme de sa caméra — une
   caméra à deux optiques, qui filme en portrait, obtient une carte portrait.

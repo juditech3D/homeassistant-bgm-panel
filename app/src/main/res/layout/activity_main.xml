@@ -48,6 +48,48 @@
                 android:layout_height="1dp"
                 android:layout_weight="1" />
 
+            <!--
+                Commandes du panneau lui-même : volume de l'amplificateur, assistant
+                vocal, mode privé. Elles ont quitté la grille : ce ne sont pas des
+                entités de la maison, et elles occupaient trois tuiles parmi les lampes.
+                Le volume se règle à la barre, directement, sans passer par une
+                sélection.
+            -->
+            <LinearLayout
+                android:id="@+id/panel_controls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="18dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/panel_volume_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="20sp" />
+
+                <SeekBar
+                    android:id="@+id/panel_volume_bar"
+                    android:layout_width="132dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="6dp"
+                    android:max="100" />
+
+                <TextView
+                    android:id="@+id/panel_assistant"
+                    style="@style/HeaderIcon"
+                    android:contentDescription="@string/assistant_enabled" />
+
+                <TextView
+                    android:id="@+id/panel_mic"
+                    style="@style/HeaderIcon"
+                    android:contentDescription="@string/feature_microphone" />
+            </LinearLayout>
+
             <!-- Pastille d'état : verte connecté, rouge sinon. -->
             <TextView
                 android:id="@+id/status_dot"
