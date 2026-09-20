@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
     /** Instant du dernier comptage des sonneries, pour ne pas relire a chaque seconde. */
     private var lastDoorbellCount = 0L
 
+    private lateinit var doorbellChip: TextView
     private lateinit var historyBadge: TextView
     private lateinit var updateBadge: TextView
 
@@ -216,6 +217,12 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
 
         // Pastille de mise a jour : allumee quand une version attend, notamment apres
         // un report. Sans elle, une mise a jour repoussee s'oubliait.
+        doorbellChip = findViewById(R.id.doorbell_chip)
+        doorbellChip.setOnClickListener {
+            lastInteraction = System.currentTimeMillis()
+            HistoryActivity.open(this, DoorbellHistory.today())
+        }
+
         historyBadge = findViewById(R.id.history_badge)
         historyBadge.apply {
             typeface = MdiIcons.typeface()
@@ -471,6 +478,9 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
         // Le fond est repose a chaque retour : un choix fait dans les reglages doit se
         // voir en revenant, sans qu'il faille redemarrer le panneau.
         applyWallpapers()
+        // Le compteur est relu sans attendre la minute : on revient souvent ici juste
+        // apres avoir supprime des captures dans l'historique.
+        lastDoorbellCount = 0L
         refreshPanelControls()
         if (allEntities.isNotEmpty()) applySelection()
     }
@@ -1043,6 +1053,17 @@ class MainActivity : AppCompatActivity(), HaClient.Listener {
             resources.getQuantityString(R.plurals.knob_rang_today, combien, combien)
         } else {
             ""
+        }
+
+        // Le bandeau porte le meme rappel, en plus bavard : on a la place, et le
+        // tableau de bord est ce qu'on regarde en premier en passant devant.
+        // Cette methode tourne sur le fil du bouton rotatif, d'ou le detour.
+        runOnUiThread {
+            if (isFinishing || !this::doorbellChip.isInitialized) return@runOnUiThread
+            doorbellChip.visibility = if (combien > 0) View.VISIBLE else View.GONE
+            if (combien > 0) {
+                doorbellChip.text = getString(R.string.history_rang_today, combien)
+            }
         }
     }
 
