@@ -30,6 +30,16 @@ class ScreenManager(private val prefs: Prefs) {
     @Volatile var fallbackOnly: Boolean = false
         private set
 
+    /**
+     * Tant que c'est vrai, ni écran de veille ni extinction.
+     *
+     * Posé par le plein écran caméra : on veut pouvoir laisser une caméra affichée en
+     * permanence, et la veille n'a pas de raison de s'en mêler puisque personne ne
+     * touche l'écran pendant qu'on regarde.
+     */
+    @Volatile var keepAwake: Boolean = false
+        private set
+
     /** Notifié à chaque endormissement ou réveil, pour republier vers Home Assistant. */
     var onSleepChanged: ((asleep: Boolean) -> Unit)? = null
 
@@ -102,6 +112,22 @@ class ScreenManager(private val prefs: Prefs) {
         rearm()
     }
 
+    /**
+     * Suspend ou rétablit la veille.
+     *
+     * Toujours appairer les deux appels, et relâcher depuis `onStop` plutôt que depuis
+     * le seul geste de fermeture : un écran qui disparaît sans relâcher laisserait la
+     * dalle allumée indéfiniment.
+     */
+    fun holdAwake(on: Boolean) {
+        if (keepAwake == on) return
+        keepAwake = on
+        // Dans les deux sens, on repart d'une interaction : à la prise, pour réveiller
+        // si l'écran dormait déjà ; au relâchement, pour que le délai reparte entier
+        // plutôt que d'éteindre aussitôt sur une minuterie d'avant la pause.
+        noteActivity()
+    }
+
     /** Vrai quand le rétroéclairage est à zéro, quoi qu'en pense [isAsleep]. */
     private fun backlightIsOff(): Boolean {
         if (fallbackOnly) return false
@@ -115,6 +141,9 @@ class ScreenManager(private val prefs: Prefs) {
     private fun rearm() {
         ui.removeCallbacks(sleepTask)
         ui.removeCallbacks(screensaverTask)
+
+        // Verrou pris : aucune minuterie n'est rearmee, l'ecran reste tel quel.
+        if (keepAwake) return
 
         val saver = prefs.screensaverSeconds
         if (saver > 0) ui.postDelayed(screensaverTask, saver * 1000L)
@@ -324,6 +353,16 @@ class ScreenManager(private val prefs: Prefs) {
         /** Un ecran signale qu'on vient de s'en servir. */
         fun noteInteraction() {
             current?.noteActivity()
+        }
+
+        /**
+         * Un ecran demande que la dalle reste allumee, ou rend la main.
+         *
+         * La minuterie appartient au tableau de bord, mais elle court aussi pendant
+         * qu'on est ailleurs dans l'application : c'est donc a lui qu'on s'adresse.
+         */
+        fun holdAwake(on: Boolean) {
+            current?.holdAwake(on)
         }
 
         /**

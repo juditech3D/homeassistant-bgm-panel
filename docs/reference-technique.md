@@ -920,6 +920,14 @@ déplacer**, **appuyer pour fermer**. Le clic n'est reconnu que si le doigt n'a 
 de plus de quelques pixels, sans quoi tout déplacement refermerait la caméra. Le cadrage
 repart à zéro à chaque sonnerie.
 
+**Le plein écran suspend la veille** (`ScreenManager.holdAwake`) : on regarde sans
+toucher, et le délai aurait éteint la dalle au milieu de la surveillance. Le verrou
+empêche `rearm()` de reposer les deux minuteries ; il est **relâché depuis `onStop`**,
+pas depuis le seul geste de fermeture — un retour au tableau de bord ou un passage en
+arrière-plan n'appuie sur rien, et un verrou oublié laisserait la dalle allumée pour de
+bon. Il est aussi reposé dans `onResume`, le tableau de bord ayant pu être reconstruit
+entre-temps avec un gestionnaire de veille tout neuf.
+
 > ⚠️ **Toujours décoder les images à l'échelle de l'écran.** Ce n'est pas une
 > optimisation. Une caméra de 2304 × 2592 pèse **23 Mo** décodée en ARGB, et l'on décode
 > une image toutes les 700 ms : sur ce panneau de 2 Go, cela provoque un

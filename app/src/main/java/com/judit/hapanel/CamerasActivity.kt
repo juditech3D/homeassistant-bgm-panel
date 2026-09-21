@@ -86,6 +86,9 @@ class CamerasActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshRangToday()
+        // Le tableau de bord a pu être reconstruit pendant qu'on était ici, avec un
+        // gestionnaire de veille tout neuf qui ignore le verrou : on le repose.
+        if (fullscreen.visibility == View.VISIBLE) ScreenManager.holdAwake(true)
     }
 
     /**
@@ -322,15 +325,24 @@ class CamerasActivity : AppCompatActivity() {
 
     private fun openFullscreen(camera: Camera) {
         fullscreen.start(prefs, camera.id, camera.name, "")
+        // Une caméra ouverte en grand doit pouvoir le rester : on regarde sans toucher,
+        // et la veille aurait éteint la dalle au bout du délai comme si l'on avait
+        // quitté le panneau.
+        ScreenManager.holdAwake(true)
     }
 
     private fun closeFullscreen() {
         fullscreen.stop()
+        // Le délai de veille repart entier à partir d'ici.
+        ScreenManager.holdAwake(false)
     }
 
     override fun onStop() {
         super.onStop()
         running = false
+        // Referme le plein écran, ce qui relâche aussi le verrou de veille. C'est ici,
+        // et non dans le geste de fermeture, qu'il faut le faire : un retour au tableau
+        // de bord ou un passage en arrière-plan n'appuie sur rien.
         closeFullscreen()
     }
 

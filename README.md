@@ -59,6 +59,10 @@ doigts**, par [go2rtc](https://github.com/AlexxIT/go2rtc) (celui de Frigate) ou 
 Assistant. Chaque carte prend la forme de sa caméra — une caméra qui filme en portrait
 obtient une carte portrait.
 
+**Tant qu'une caméra est ouverte en grand, la veille est suspendue** : ni écran de
+veille ni extinction, on peut donc laisser une vue affichée en permanence. Le délai
+repart entier quand on la referme.
+
 ### 🔊 La voix et le son
 
 L'assistant **Assist** de Home Assistant, avec un **mode privé** qui coupe les micros. Le
@@ -293,7 +297,7 @@ revient de lui-même. Une pastille dans le bandeau rappelle une mise à jour rep
   ~130 µs, pas un maintien.
 - Les **relais** répondent en `/proc/vendor/` mais ne sont pas sortis sur le bornier : ils
   ne commandent rien d'extérieur. Les bornes `IO` et `OFF/ON` ne sont pas identifiées.
-- Sonnette câblée, assistant vocal et zoom caméra n'ont pas tous été validés à la main.
+- **Sonnette câblée** et **assistant vocal** n'ont pas encore été validés à la main. Le zoom caméra, lui, l'a été.
 
 ---
 

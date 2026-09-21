@@ -58,6 +58,10 @@ A grid of continuously refreshed thumbnails, then full screen with **pinch zoom*
 Assistant. Each card takes the shape of its camera — a camera that films in portrait gets
 a portrait card.
 
+**While a camera is open full screen, sleep is suspended** — no screensaver, no
+blackout — so a view can be left up permanently. The delay starts afresh when it is
+closed.
+
 ### 🔊 Voice and sound
 
 Home Assistant's **Assist** pipeline, with a **private mode** that cuts the microphones
@@ -289,7 +293,7 @@ Failing that, `adb install -r` over the network does the same job.
   a hold.
 - The **relays** answer in `/proc/vendor/` but are not brought out to the terminal block:
   they control nothing external. The `IO` and `OFF/ON` terminals are unidentified.
-- Wired doorbell, voice assistant and camera zoom have not all been validated by hand.
+- The **wired doorbell** and the **voice assistant** have not been validated by hand yet. Camera zoom has.
 
 ---
 
